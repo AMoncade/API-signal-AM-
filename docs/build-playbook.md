@@ -195,6 +195,29 @@ seeded test DB. Run the API and show me each endpoint returning data.
 ```
 **Verify:** every endpoint returns; the join only shows funded-AND-surging; proxy-secret rejection works. Commit.
 
+### Phase 5.5 — Integration pass (run AFTER Phase 5, BEFORE deploy)
+**Goal:** prove the whole chain connects end-to-end and fix every seam before going live. This is the one phase that is NOT isolated — it reads the entire codebase at once.
+
+**Session handling (important, differs from other phases):** finish and commit Phase 5 first, then `/clear`, then run this with a CLEAN context. Do **not** `/clear` or `/compact` *during* this phase — let context accumulate as it reads everything. Clear *between*, never *within*. This is also the best (often only) phase to consider `/effort max` or ultracode, since it spans the whole codebase.
+
+```
+THIS SESSION: Integration pass. Do NOT treat this as isolated. Read the ENTIRE codebase and
+/docs/schema.sql, then run the system end-to-end against real data: one fresh Form D company
+all the way through to the funded_and_hiring join. Find and fix every seam where phases don't
+line up (mismatched columns/keys, the join keying, unused or mis-named fields, a snapshot that
+doesn't surface in company_velocity).
+
+The funded_and_hiring view needs a 30-day-old baseline snapshot to flag is_surging — which real
+data won't have yet, so the view will be empty by design on day one. Seed test job_snapshots
+with a baseline ~35 days old AND a current count >=2x it for at least one company that also has
+a recent Form D, so the join actually returns rows. Verify the view returns that company.
+
+Keep full context — we are not clearing during this phase. When done, STOP and show me the
+funded_and_hiring output so I can confirm it is non-empty and plausible (this is a human
+checkpoint per CLAUDE.md).
+```
+**Verify (human checkpoint):** `funded_and_hiring` returns the seeded company and the row looks right; the end-to-end path ran without manual glue. Commit.
+
 ### Phase 6 — Schedule + deploy
 **Goal:** the worker runs 24/7; the API is reachable.
 ```
@@ -244,5 +267,5 @@ extraction on a handful of real postings.
 - [ ] API validates the RapidAPI proxy secret
 - [ ] Free tier exists; signals listed separately
 
-> Build order recap: Phase 1 (Form D) ships your first signal on the cleanest data. Get the worker running early (Phase 3) so velocity history accumulates. The join (Phase 5) is the headline product. Migrations (Phase 7) is last and lowest-stakes.
+> Build order recap: Phase 1 (Form D) ships your first signal on the cleanest data. Get the worker running early (Phase 3) so velocity history accumulates. The join (Phase 5) is the headline product. Run the **integration pass (Phase 5.5) after Phase 5 and before deploy** — clean context going in, no clearing within — to fix seams on the bench. Then deploy (Phase 6); migrations (Phase 7) is last and lowest-stakes.
 ```
