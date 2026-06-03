@@ -1,0 +1,479 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D/A</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001600941</cik>
+        <entityName>iCapital Multi-Strategy Fund, Ltd.</entityName>
+        <issuerAddress>
+            <street1>c/o Compliance Department</street1>
+            <street2>60 EAST 42ND ST, 24TH FLOOR</street2>
+            <city>NEW YORK</city>
+            <stateOrCountry>NY</stateOrCountry>
+            <stateOrCountryDescription>NEW YORK</stateOrCountryDescription>
+            <zipCode>10165</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>212-994-7400</issuerPhoneNumber>
+        <jurisdictionOfInc>CAYMAN ISLANDS</jurisdictionOfInc>
+        <edgarPreviousNameList>
+            <previousName>Altegris Multi-Strategy Fund, Ltd.</previousName>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>-</firstName>
+                <lastName>iCapital Advisors, LLC</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Compliance Department</street1>
+                <street2>60 EAST 42ND ST, 24TH FLOOR</street2>
+                <city>NEW YORK</city>
+                <stateOrCountry>NY</stateOrCountry>
+                <stateOrCountryDescription>NEW YORK</stateOrCountryDescription>
+                <zipCode>10165</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Promoter</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Investment Advisor of the Issuer</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Michael</firstName>
+                <lastName>Stanton</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Compliance Department</street1>
+                <street2>60 EAST 42ND ST, 24TH FLOOR</street2>
+                <city>NEW YORK</city>
+                <stateOrCountry>NY</stateOrCountry>
+                <stateOrCountryDescription>NEW YORK</stateOrCountryDescription>
+                <zipCode>10165</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Authorized Signatory of the Investment Advisor of the Issuer</relationshipClarification>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Pooled Investment Fund</industryGroupType>
+            <investmentFundInfo>
+                <investmentFundType>Hedge Fund</investmentFundType>
+                <is40Act>false</is40Act>
+            </investmentFundInfo>
+        </industryGroup>
+        <issuerSize>
+            <aggregateNetAssetValueRange>Decline to Disclose</aggregateNetAssetValueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+            <item>3C</item>
+            <item>3C.7</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>true</isAmendment>
+                <previousAccessionNumber>0001814554-25-000037</previousAccessionNumber>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2014-03-01</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>true</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isPooledInvestmentFundType>true</isPooledInvestmentFundType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+            <clarificationOfResponse></clarificationOfResponse>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>41817</minimumInvestmentAccepted>
+        <salesCompensationList>
+            <recipient>
+                <recipientName>ACP SECURITIES, LLC</recipientName>
+                <recipientCRDNumber>139049</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>1200 BRICKELL AVENUE</street1>
+                    <street2>SUITE 1700</street2>
+                    <city>MIAMI</city>
+                    <stateOrCountry>FL</stateOrCountry>
+                    <stateOrCountryDescription>FLORIDA</stateOrCountryDescription>
+                    <zipCode>33131</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <state>CA</state>
+                    <description>CALIFORNIA</description>
+                    <state>CT</state>
+                    <description>CONNECTICUT</description>
+                    <state>DE</state>
+                    <description>DELAWARE</description>
+                    <state>DC</state>
+                    <description>DISTRICT OF COLUMBIA</description>
+                    <state>FL</state>
+                    <description>FLORIDA</description>
+                    <state>MA</state>
+                    <description>MASSACHUSETTS</description>
+                    <state>NJ</state>
+                    <description>NEW JERSEY</description>
+                    <state>NY</state>
+                    <description>NEW YORK</description>
+                    <state>NC</state>
+                    <description>NORTH CAROLINA</description>
+                    <state>PR</state>
+                    <description>PUERTO RICO</description>
+                    <state>SD</state>
+                    <description>SOUTH DAKOTA</description>
+                    <state>TX</state>
+                    <description>TEXAS</description>
+                    <state>VA</state>
+                    <description>VIRGINIA</description>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>A.G.P. / ALLIANCE GLOBAL PARTNERS</recipientName>
+                <recipientCRDNumber>8361</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>88 POST ROAD WEST</street1>
+                    <street2>2ND FLOOR</street2>
+                    <city>WESTPORT</city>
+                    <stateOrCountry>CT</stateOrCountry>
+                    <stateOrCountryDescription>CONNECTICUT</stateOrCountryDescription>
+                    <zipCode>06880</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>COMMONWEALTH FINANCIAL NETWORK</recipientName>
+                <recipientCRDNumber>8032</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>275 WYMAN STREET</street1>
+                    <street2>STE. 400</street2>
+                    <city>WALTHAM</city>
+                    <stateOrCountry>MA</stateOrCountry>
+                    <stateOrCountryDescription>MASSACHUSETTS</stateOrCountryDescription>
+                    <zipCode>02451</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>Empire Asset Management Company</recipientName>
+                <recipientCRDNumber>143007</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>101 CRAWFORDS CORNER ROAD</street1>
+                    <street2>SUITE 3128</street2>
+                    <city>HOLMDEL</city>
+                    <stateOrCountry>NJ</stateOrCountry>
+                    <stateOrCountryDescription>NEW JERSEY</stateOrCountryDescription>
+                    <zipCode>07733</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>Harbor Investment Advisory, LLC</recipientName>
+                <recipientCRDNumber>151085</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>2330 W. JOPPA ROAD, SUITE 160</street1>
+                    <city>LUTHERVILLE</city>
+                    <stateOrCountry>MD</stateOrCountry>
+                    <stateOrCountryDescription>MARYLAND</stateOrCountryDescription>
+                    <zipCode>21093</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <state>AL</state>
+                    <description>ALABAMA</description>
+                    <state>AZ</state>
+                    <description>ARIZONA</description>
+                    <state>AR</state>
+                    <description>ARKANSAS</description>
+                    <state>CA</state>
+                    <description>CALIFORNIA</description>
+                    <state>CO</state>
+                    <description>COLORADO</description>
+                    <state>CT</state>
+                    <description>CONNECTICUT</description>
+                    <state>DE</state>
+                    <description>DELAWARE</description>
+                    <state>DC</state>
+                    <description>DISTRICT OF COLUMBIA</description>
+                    <state>FL</state>
+                    <description>FLORIDA</description>
+                    <state>GA</state>
+                    <description>GEORGIA</description>
+                    <state>HI</state>
+                    <description>HAWAII</description>
+                    <state>ID</state>
+                    <description>IDAHO</description>
+                    <state>IL</state>
+                    <description>ILLINOIS</description>
+                    <state>IN</state>
+                    <description>INDIANA</description>
+                    <state>IA</state>
+                    <description>IOWA</description>
+                    <state>KS</state>
+                    <description>KANSAS</description>
+                    <state>KY</state>
+                    <description>KENTUCKY</description>
+                    <state>LA</state>
+                    <description>LOUISIANA</description>
+                    <state>ME</state>
+                    <description>MAINE</description>
+                    <state>MD</state>
+                    <description>MARYLAND</description>
+                    <state>MA</state>
+                    <description>MASSACHUSETTS</description>
+                    <state>MI</state>
+                    <description>MICHIGAN</description>
+                    <state>MN</state>
+                    <description>MINNESOTA</description>
+                    <state>MS</state>
+                    <description>MISSISSIPPI</description>
+                    <state>MO</state>
+                    <description>MISSOURI</description>
+                    <state>MT</state>
+                    <description>MONTANA</description>
+                    <state>NE</state>
+                    <description>NEBRASKA</description>
+                    <state>NV</state>
+                    <description>NEVADA</description>
+                    <state>NH</state>
+                    <description>NEW HAMPSHIRE</description>
+                    <state>NJ</state>
+                    <description>NEW JERSEY</description>
+                    <state>NM</state>
+                    <description>NEW MEXICO</description>
+                    <state>NY</state>
+                    <description>NEW YORK</description>
+                    <state>NC</state>
+                    <description>NORTH CAROLINA</description>
+                    <state>ND</state>
+                    <description>NORTH DAKOTA</description>
+                    <state>OH</state>
+                    <description>OHIO</description>
+                    <state>OK</state>
+                    <description>OKLAHOMA</description>
+                    <state>OR</state>
+                    <description>OREGON</description>
+                    <state>PA</state>
+                    <description>PENNSYLVANIA</description>
+                    <state>RI</state>
+                    <description>RHODE ISLAND</description>
+                    <state>SC</state>
+                    <description>SOUTH CAROLINA</description>
+                    <state>SD</state>
+                    <description>SOUTH DAKOTA</description>
+                    <state>TN</state>
+                    <description>TENNESSEE</description>
+                    <state>TX</state>
+                    <description>TEXAS</description>
+                    <state>UT</state>
+                    <description>UTAH</description>
+                    <state>VT</state>
+                    <description>VERMONT</description>
+                    <state>VA</state>
+                    <description>VIRGINIA</description>
+                    <state>WA</state>
+                    <description>WASHINGTON</description>
+                    <state>WV</state>
+                    <description>WEST VIRGINIA</description>
+                    <state>WI</state>
+                    <description>WISCONSIN</description>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>Janney Montgomery Scott, LLC</recipientName>
+                <recipientCRDNumber>463</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>1717 ARCH STREET</street1>
+                    <city>PHILADELPHIA</city>
+                    <stateOrCountry>PA</stateOrCountry>
+                    <stateOrCountryDescription>PENNSYLVANIA</stateOrCountryDescription>
+                    <zipCode>19103</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>Money Concepts Capital Corp.</recipientName>
+                <recipientCRDNumber>12963</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>11440 NORTH JOG ROAD</street1>
+                    <city>PALM BEACH GARDENS</city>
+                    <stateOrCountry>FL</stateOrCountry>
+                    <stateOrCountryDescription>FLORIDA</stateOrCountryDescription>
+                    <zipCode>33418</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>PRIVATE CLIENT SERVICES, LLC</recipientName>
+                <recipientCRDNumber>120222</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>2225 LEXINGTON RD.</street1>
+                    <city>LOUISVILLE</city>
+                    <stateOrCountry>KY</stateOrCountry>
+                    <stateOrCountryDescription>KENTUCKY</stateOrCountryDescription>
+                    <zipCode>40206</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>RBC Capital Markets, LLC</recipientName>
+                <recipientCRDNumber>31194</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>200 VESEY ST.</street1>
+                    <city>NEW YORK</city>
+                    <stateOrCountry>NY</stateOrCountry>
+                    <stateOrCountryDescription>NEW YORK</stateOrCountryDescription>
+                    <zipCode>10281</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>Stifel, Nicolaus &amp; Company, Incorporated</recipientName>
+                <recipientCRDNumber>793</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>501 NORTH BROADWAY</street1>
+                    <city>ST. LOUIS,</city>
+                    <stateOrCountry>MO</stateOrCountry>
+                    <stateOrCountryDescription>MISSOURI</stateOrCountryDescription>
+                    <zipCode>63102</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>USCA SECURITIES LLC</recipientName>
+                <recipientCRDNumber>103789</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>4444 WESTHEIMER</street1>
+                    <street2>SUITE G500</street2>
+                    <city>HOUSTON</city>
+                    <stateOrCountry>TX</stateOrCountry>
+                    <stateOrCountryDescription>TEXAS</stateOrCountryDescription>
+                    <zipCode>77027</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+            <recipient>
+                <recipientName>WILLIAM BLAIR</recipientName>
+                <recipientCRDNumber>1252</recipientCRDNumber>
+                <associatedBDName>None</associatedBDName>
+                <associatedBDCRDNumber>None</associatedBDCRDNumber>
+                <recipientAddress>
+                    <street1>THE WILLIAM BLAIR BUILDING</street1>
+                    <street2>150 NORTH RIVERSIDE</street2>
+                    <city>CHICAGO</city>
+                    <stateOrCountry>IL</stateOrCountry>
+                    <stateOrCountryDescription>ILLINOIS</stateOrCountryDescription>
+                    <zipCode>60606</zipCode>
+                </recipientAddress>
+                <statesOfSolicitationList>
+                    <value>All States</value>
+                </statesOfSolicitationList>
+                <foreignSolicitation>false</foreignSolicitation>
+            </recipient>
+        </salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>Indefinite</totalOfferingAmount>
+            <totalAmountSold>457920484</totalAmountSold>
+            <totalRemaining>Indefinite</totalRemaining>
+            <clarificationOfResponse></clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>876</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+                <isEstimate>true</isEstimate>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+                <isEstimate>true</isEstimate>
+            </findersFees>
+            <clarificationOfResponse>Certain investors are required to pay (i) an upfront placement fee and/or (ii) an ongoing annual fee to the placement agent.</clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse></clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>iCapital Multi-Strategy Fund, Ltd.</issuerName>
+                <signatureName>Michael Stanton</signatureName>
+                <nameOfSigner>Michael Stanton</nameOfSigner>
+                <signatureTitle>Authorized Signatory of the Investment Advisor of the Issuer</signatureTitle>
+                <signatureDate>2026-06-02</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>

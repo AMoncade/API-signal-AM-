@@ -36,12 +36,19 @@ class Settings(BaseSettings):
 
     # --- 8-K classification (Phase 4) — HOSTED model only --------------------
     anthropic_api_key: str = ""
+    # Hosted model for 8-K classification (low volume, high stakes — spec §4 says
+    # this is the one place to pay the quality premium). Override via env if needed.
+    anthropic_model: str = "claude-sonnet-4-6"
 
     # --- Optional domain resolver (Phase 2) ----------------------------------
     domain_resolver_api_key: str = ""
 
     # --- RapidAPI proxy secret (Phase 5) -------------------------------------
     rapidapi_proxy_secret: str = ""
+    # Header RapidAPI injects with the proxy secret. CONFIRM against current
+    # provider docs before launch (it has changed historically); configurable so a
+    # rename can be fixed via env, not a redeploy.
+    rapidapi_proxy_header: str = "X-RapidAPI-Proxy-Secret"
 
     # --- Shared HTTP client knobs --------------------------------------------
     # HARD RULE #1: <= 10 requests/second across ALL sec.gov domains. The cap is

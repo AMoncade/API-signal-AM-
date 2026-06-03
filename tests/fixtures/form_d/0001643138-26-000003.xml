@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001643138</cik>
+        <entityName>ClusterTruck, Inc.</entityName>
+        <issuerAddress>
+            <street1>729 N. PENNSYLVANIA ST.</street1>
+            <city>INDIANAPOLIS</city>
+            <stateOrCountry>IN</stateOrCountry>
+            <stateOrCountryDescription>INDIANA</stateOrCountryDescription>
+            <zipCode>46204</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>3173453099</issuerPhoneNumber>
+        <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+        <edgarPreviousNameList>
+            <previousName>ClusterTruck</previousName>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Janet</firstName>
+                <middleName>.</middleName>
+                <lastName>Monroe</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>729 Pennsylvania Street</street1>
+                <street2>Second Floor</street2>
+                <city>Indianapolis</city>
+                <stateOrCountry>IN</stateOrCountry>
+                <stateOrCountryDescription>INDIANA</stateOrCountryDescription>
+                <zipCode>46204</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Chris</firstName>
+                <middleName>.</middleName>
+                <lastName>Baggott</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>729 Pennsylvania Street</street1>
+                <street2>Second Floor</street2>
+                <city>Indianapolis</city>
+                <stateOrCountry>IN</stateOrCountry>
+                <stateOrCountryDescription>INDIANA</stateOrCountryDescription>
+                <zipCode>46204</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Michael</firstName>
+                <middleName>.</middleName>
+                <lastName>Cunnigham</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>729 Pennsylvania Street</street1>
+                <street2>Second Floor</street2>
+                <city>Indianapolis</city>
+                <stateOrCountry>IN</stateOrCountry>
+                <stateOrCountryDescription>INDIANA</stateOrCountryDescription>
+                <zipCode>46204</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Nick</firstName>
+                <middleName>.</middleName>
+                <lastName>Solaro</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>729 Pennsylvania Street</street1>
+                <street2>Second Floor</street2>
+                <city>Indianapolis</city>
+                <stateOrCountry>IN</stateOrCountry>
+                <stateOrCountryDescription>INDIANA</stateOrCountryDescription>
+                <zipCode>46204</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Other Technology</industryGroupType>
+        </industryGroup>
+        <issuerSize>
+            <revenueRange>Decline to Disclose</revenueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>false</isAmendment>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2026-05-20</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>false</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isOtherType>true</isOtherType>
+            <descriptionOfOtherType>Simple Agreements for Future Equity (SAFEs)</descriptionOfOtherType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+            <clarificationOfResponse></clarificationOfResponse>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>0</minimumInvestmentAccepted>
+        <salesCompensationList></salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>1000000</totalOfferingAmount>
+            <totalAmountSold>425521</totalAmountSold>
+            <totalRemaining>574479</totalRemaining>
+            <clarificationOfResponse></clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>4</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+            </findersFees>
+            <clarificationOfResponse></clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse></clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>ClusterTruck, Inc.</issuerName>
+                <signatureName>/s/ Janet Monroe</signatureName>
+                <nameOfSigner>Janet Monroe</nameOfSigner>
+                <signatureTitle>Chief Executive Officer</signatureTitle>
+                <signatureDate>2026-06-02</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>

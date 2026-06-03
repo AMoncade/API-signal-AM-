@@ -1,0 +1,24 @@
+# Two services from one image: the read API and the scheduled worker.
+# Works on any Docker host (a cheap VPS, Render, Railway). Both read secrets from
+# the host .env (NOT baked into the image - see .dockerignore).
+services:
+  api:
+    build: .
+    command: ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "uv", "run", "python", "-c", "import httpx,sys; sys.exit(0 if httpx.get('http://localhost:8000/health').status_code==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build: .
+    # Self-contained daily scheduler (no host cron needed). Runs the full pipeline
+    # at 06:00 UTC and logs each job to ingestion_runs. NO BACKFILL: keep it running.
+    command: ["uv", "run", "python", "-m", "worker", "schedule", "--hour", "6"]
+    env_file: .env
+    restart: unless-stopped

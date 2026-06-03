@@ -15,18 +15,21 @@ state:
 | Phase | Scope | Status |
 |---|---|---|
 | **0 — Scaffold** | Packages, shared `core` (config + Supabase wrapper + rate-limited HTTP client), `/health`, tests | ✅ Done |
-| 1 — Form D ingestion + parser | Pull D/D-A filings, parse XML, store funding signals | ⬜ Not started |
-| 2 — Domain derivation + ATS seeding | Name+state → domain → Greenhouse/Lever board token | ⬜ Not started |
-| 3 — Job snapshots + velocity | Daily open-posting counts → surging-velocity signal | ⬜ Not started |
-| 4 — 8-K ingestion + classification | Item codes → event type; hosted LLM for specifics/severity | ⬜ Not started |
-| 5 — Read API + RapidAPI auth | The 5 signal endpoints, proxy-secret middleware | ⬜ Not started |
-| 5.5 — Integration pass | End-to-end check; `funded_and_hiring` returns rows | ⬜ Not started |
-| 6 — Schedule + deploy | Worker on a schedule, Dockerfiles, deploy | ⬜ Not started |
-| 7 — Migrations enrichment | Regex prefilter → cheap LLM; low-confidence field | ⬜ Not started |
+| 1 — Form D ingestion + parser | Pull D/D-A filings, parse XML, store funding signals | ✅ Done |
+| 2 — Domain derivation + ATS seeding | Name+state → domain → Greenhouse/Lever board token | ✅ Done |
+| 3 — Job snapshots + velocity | Daily open-posting counts → surging-velocity signal | ✅ Done |
+| 4 — 8-K ingestion + classification | Item codes → event type; hosted LLM for specifics/severity | ✅ Done |
+| 5 — Read API + RapidAPI auth | The 5 signal endpoints, proxy-secret middleware | ✅ Done |
+| 5.5 — Integration pass | End-to-end check; `funded_and_hiring` returns rows | ✅ Done |
+| 6 — Schedule + deploy | Worker on a schedule, Dockerfiles, deploy | ✅ Done |
+| 7 — Migrations enrichment | Regex prefilter → cheap LLM; low-confidence field | ✅ Done |
 
-> **Now: Phase 0 complete.** Runnable skeleton + healthcheck only, no signal
-> logic yet. Next up is Phase 1 (Form D ingestion). Update this table as each
-> phase lands.
+> **Now: all phases (0-7) implemented and tested.** The full pipeline runs end to
+> end and the headline `funded_and_hiring` join returns rows in the integration
+> check. 81 tests pass against real saved EDGAR/ATS fixtures. Live, credential-free
+> demos: `python -m worker form_d|seed|snapshot|eight_k|migrations --dry-run`.
+> Going live needs external accounts: a Supabase project (load `docs/schema.sql`),
+> an `ANTHROPIC_API_KEY` for the 8-K signal, and a 24/7 host (see `docs/DEPLOY.md`).
 
 ## Architecture
 
@@ -77,9 +80,23 @@ later phases.
 # Read API — serves the healthcheck at http://localhost:8000/health
 uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload   # or: make run-api
 
-# Ingestion worker (Phase 0: wires up the shared client, no jobs yet)
-uv run python -m worker                                            # or: make run-worker
+# Ingestion worker — jobs (each has a credential-free --dry-run demo):
+uv run python -m worker form_d   --dry-run --limit 25   # Phase 1: parse live Form D filings
+uv run python -m worker seed     --dry-run --limit 60   # Phase 2: derive domains + match ATS boards
+uv run python -m worker snapshot --dry-run --limit 60   # Phase 3: ingest -> seed -> snapshot counts
+uv run python -m worker eight_k  --dry-run --limit 40   # Phase 4: deterministic 8-K Item-code classify
+uv run python -m worker migrations --dry-run            # Phase 7: JD migration-hint extraction
+
+# Production jobs (need Supabase creds; 8-K needs ANTHROPIC_API_KEY):
+uv run python -m worker run-all                         # run the whole pipeline once
+uv run python -m worker schedule --hour 6               # Phase 6: run it daily at 06:00 UTC, forever
 ```
+
+On this dev box there is no `uv`; a Python 3.12 `.venv` is used directly, e.g.
+`.venv\Scripts\python.exe -m worker form_d --dry-run --limit 25`.
+
+See **`docs/DEPLOY.md`** for Dockerized deployment (API + scheduled worker) and how
+to verify the nightly run via the `ingestion_runs` table.
 
 Check health:
 

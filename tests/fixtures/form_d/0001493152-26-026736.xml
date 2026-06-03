@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001597846</cik>
+        <entityName>Greenpro Capital Corp.</entityName>
+        <issuerAddress>
+            <street1>B-23A-02,G-VESTOR TOWER,PAVILION EMBASSY</street1>
+            <street2>200 JALAN AMPANG, 50450 W.P.</street2>
+            <city>KUALA LUMPUR</city>
+            <stateOrCountry>N8</stateOrCountry>
+            <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+            <zipCode>60</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>3 8408-1788</issuerPhoneNumber>
+        <jurisdictionOfInc>NEVADA</jurisdictionOfInc>
+        <issuerPreviousNameList>
+            <value>None</value>
+        </issuerPreviousNameList>
+        <edgarPreviousNameList>
+            <previousName>Greenpro, Inc.</previousName>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Chong Kuang</firstName>
+                <lastName>Lee</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Che Chan Gilbert</firstName>
+                <lastName>Loke</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Prabodh Kumar Kantilal H</firstName>
+                <lastName>Sheth</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Srirat</firstName>
+                <lastName>Chuchottaworn</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Mean Kwong</firstName>
+                <lastName>Han</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Chee Wah</firstName>
+                <lastName>Chew</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>B-23A-02,G-Vestor Tower,Pavilion Embassy</street1>
+                <street2>200 Jalan Ampang, 50450 W.P.</street2>
+                <city>Kuala Lumpur</city>
+                <stateOrCountry>N8</stateOrCountry>
+                <stateOrCountryDescription>MALAYSIA</stateOrCountryDescription>
+                <zipCode>60</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Business Services</industryGroupType>
+        </industryGroup>
+        <issuerSize>
+            <revenueRange>$1,000,001 - $5,000,000</revenueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>false</isAmendment>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2026-05-29</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>false</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isEquityType>true</isEquityType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>50000</minimumInvestmentAccepted>
+        <salesCompensationList></salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>50000</totalOfferingAmount>
+            <totalAmountSold>50000</totalAmountSold>
+            <totalRemaining>0</totalRemaining>
+            <clarificationOfResponse>On May 29, 2026, Greenpro Capital Corp issued and sold 28,949 shares of common stock to its CEO and director, Mr. Lee Chong Kuang, at a purchase price of $1.7272 per share, for aggregate gross proceeds of $50,000, pursuant to a subscription agreement.</clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>1</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+            </findersFees>
+            <clarificationOfResponse></clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse></clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>Greenpro Capital Corp.</issuerName>
+                <signatureName>/s/ Loke Che Chan Gilbert</signatureName>
+                <nameOfSigner>Loke Che Chan Gilbert</nameOfSigner>
+                <signatureTitle>Chief Financial Officer, Secretary, Treasurer and Director</signatureTitle>
+                <signatureDate>2026-06-02</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>

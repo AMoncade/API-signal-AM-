@@ -1,0 +1,327 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001369790</cik>
+        <entityName>FEB BANCSHARES INC</entityName>
+        <issuerAddress>
+            <street1>51 ST. JOSEPH STREET</street1>
+            <city>MOBILE</city>
+            <stateOrCountry>AL</stateOrCountry>
+            <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+            <zipCode>36602</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>251-445-3805</issuerPhoneNumber>
+        <jurisdictionOfInc>ALABAMA</jurisdictionOfInc>
+        <issuerPreviousNameList>
+            <value>None</value>
+        </issuerPreviousNameList>
+        <edgarPreviousNameList>
+            <value>None</value>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Guice</firstName>
+                <lastName>Slawson, Jr.</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Chairman</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Joe</firstName>
+                <middleName>Stinson</middleName>
+                <lastName>Slawson</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>William</firstName>
+                <lastName>Slawson</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Steve</firstName>
+                <lastName>Smith</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Vice Chairman, President &amp; CEO</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Christopher</firstName>
+                <lastName>Watkins</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Andrea</firstName>
+                <lastName>Moore</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Jodi</firstName>
+                <lastName>Turner</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>John</firstName>
+                <lastName>Arendall</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>22nd State Bank Division - President</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Frank</firstName>
+                <lastName>Perez</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Executive VP and CFO</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Kathleen</firstName>
+                <lastName>Metz</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Executive VP and Chief Credit Officer</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Joy</firstName>
+                <lastName>Bishop</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Executive VP &amp; Chief of Staff</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Larry</firstName>
+                <middleName>Wayne</middleName>
+                <lastName>Hart</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Executive VP &amp; CIO</relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Greg</firstName>
+                <lastName>Spadea</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>51 St. Joseph Street</street1>
+                <city>Mobile</city>
+                <stateOrCountry>AL</stateOrCountry>
+                <stateOrCountryDescription>ALABAMA</stateOrCountryDescription>
+                <zipCode>36602</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification>Executive VP &amp; Chief Digital Officer</relationshipClarification>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Commercial Banking</industryGroupType>
+        </industryGroup>
+        <issuerSize>
+            <revenueRange>$25,000,001 - $100,000,000</revenueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>false</isAmendment>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2026-05-22</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>false</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isEquityType>true</isEquityType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+            <clarificationOfResponse></clarificationOfResponse>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>100039</minimumInvestmentAccepted>
+        <salesCompensationList></salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>7500000</totalOfferingAmount>
+            <totalAmountSold>1700000</totalAmountSold>
+            <totalRemaining>5800000</totalRemaining>
+            <clarificationOfResponse></clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>6</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+            </findersFees>
+            <clarificationOfResponse></clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse></clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>FEB BANCSHARES INC</issuerName>
+                <signatureName>/s/ Steve Smith</signatureName>
+                <nameOfSigner>Steve Smith</nameOfSigner>
+                <signatureTitle>Vice Chairman, President &amp; CEO</signatureTitle>
+                <signatureDate>2026-06-02</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>
