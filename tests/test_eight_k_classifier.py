@@ -50,15 +50,22 @@ def test_validate_tolerates_markdown_fences() -> None:
     assert data["severity"] == "low"
 
 
-def test_validate_rejects_bad_enums_and_bad_json() -> None:
-    with pytest.raises(ClassificationError):
-        validate_classification('{"severity":"catastrophic"}')
-    with pytest.raises(ClassificationError):
-        validate_classification('{"eventType":"alien_invasion"}')
+def test_validate_coerces_non_authoritative_enums() -> None:
+    # eventType/severity from the model are NOT used (item codes + rubric win), so
+    # out-of-enum values are coerced rather than crashing the batch.
+    d = validate_classification('{"eventType":"alien_invasion","severity":"catastrophic"}')
+    assert d["eventType"] == "other"
+    assert d["severity"] is None
+    # confidence out of range is clamped, not rejected
+    assert validate_classification('{"confidence": 5}')["confidence"] == 1.0
+    assert validate_classification('{"confidence": -2}')["confidence"] == 0.0
+
+
+def test_validate_still_rejects_unusable_json() -> None:
     with pytest.raises(ClassificationError):
         validate_classification("not json at all")
     with pytest.raises(ClassificationError):
-        validate_classification('{"confidence": 5}')
+        validate_classification('["a list, not an object"]')
 
 
 def test_validate_truncates_long_summary() -> None:

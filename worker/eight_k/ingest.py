@@ -80,6 +80,7 @@ class EightKStats:
     skipped_non_event: int = 0
     skipped_existing: int = 0
     fetch_errors: int = 0
+    classify_errors: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
 
@@ -87,7 +88,8 @@ class EightKStats:
         return (
             f"seen={self.seen} classified={self.classified} "
             f"non_event_skipped={self.skipped_non_event} already_present={self.skipped_existing} "
-            f"fetch_errors={self.fetch_errors} tokens(in/out)={self.input_tokens}/{self.output_tokens}"
+            f"fetch_errors={self.fetch_errors} classify_errors={self.classify_errors} "
+            f"tokens(in/out)={self.input_tokens}/{self.output_tokens}"
         )
 
 
@@ -110,7 +112,15 @@ def classify_one(
     event_type, _default_sev = event
 
     text = extract_primary_text(full_txt)
-    result = classifier.classify(text=text, item_codes=codes, entity_name=ref.company_name)
+    from worker.eight_k.classifier import ClassificationError
+
+    try:
+        result = classifier.classify(text=text, item_codes=codes, entity_name=ref.company_name)
+    except ClassificationError as exc:
+        # One unusable model response must not abort the whole batch.
+        stats.classify_errors += 1
+        log.warning("classification failed for %s: %s", ref.accession_number, exc)
+        return None
     stats.input_tokens += result.input_tokens
     stats.output_tokens += result.output_tokens
     llm = result.data

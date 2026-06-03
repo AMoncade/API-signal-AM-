@@ -140,6 +140,31 @@ The schema enables RLS with no anon policies, so the tables are not publicly
 readable — the worker and API reach them via the service-role key, which
 bypasses RLS.
 
+## Continuing on another machine (with Claude Code)
+
+Everything Claude Code needs to keep building lives in the repo, so a fresh clone on
+any computer can continue the project:
+
+1. **Clone and open in Claude Code.** It reads `CLAUDE.md` automatically (contracts,
+   hard rules, and the per-phase NOTES), plus `docs/` and `prompts/`. That is the
+   project's memory; it travels with the repo (it is not stored on any one machine).
+2. **Install deps:** `uv sync --extra dev`. This provisions Python 3.11 (pinned in
+   `.python-version`) and installs everything from `uv.lock`, including `supabase` and
+   `pytest`. No `uv` yet? Windows: `irm https://astral.sh/uv/install.ps1 | iex`;
+   macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+3. **Recreate secrets:** `cp .env.example .env` and fill it in. `.env` is gitignored
+   and never committed, so this is the one manual step per machine. Reuse the SAME
+   values as elsewhere:
+   - `SEC_USER_AGENT` (any descriptive `"Name email"` string)
+   - `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` (the existing project; schema already loaded)
+   - `ANTHROPIC_API_KEY` (only for the 8-K `material-risks` signal)
+4. **Verify:** `uv run pytest` (fully offline, needs no secrets) should be all green.
+5. **Run:** `uv run uvicorn api.main:app --reload` (API) or
+   `uv run python -m worker run-all` (populate from live EDGAR/ATS/8-K).
+
+The Supabase project is shared, so a new machine points at the same data with no
+re-setup. Only run `docs/schema.sql` again when starting a brand-new database.
+
 ## Project layout
 
 ```

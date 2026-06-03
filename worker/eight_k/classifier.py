@@ -74,7 +74,15 @@ class Classifier(Protocol):
 
 
 def validate_classification(raw: str) -> dict:
-    """Parse + validate the model's JSON output (tolerating accidental fences)."""
+    """Parse + normalize the model's JSON output (tolerating accidental fences).
+
+    Only genuinely unusable output (non-JSON / not an object) raises. The model's
+    ``eventType`` and ``severity`` are NOT authoritative -- the ingest layer sets
+    event_type from the Item codes and severity from the deterministic rubric -- so
+    out-of-enum values from the model are coerced rather than allowed to crash the
+    run. We keep the fields the model actually contributes (isAbrupt, affectedRole,
+    summary, confidence) clean.
+    """
     body = raw.strip()
     if body.startswith("```"):
         body = body.strip("`")
@@ -85,15 +93,17 @@ def validate_classification(raw: str) -> dict:
         raise ClassificationError(f"model did not return valid JSON: {exc}") from exc
     if not isinstance(data, dict):
         raise ClassificationError("model output is not a JSON object")
-    sev = data.get("severity")
-    if sev is not None and sev not in SEVERITIES:
-        raise ClassificationError(f"invalid severity: {sev!r}")
-    et = data.get("eventType")
-    if et is not None and et not in EVENT_TYPES:
-        raise ClassificationError(f"invalid eventType: {et!r}")
+    # Coerce non-authoritative fields instead of raising.
+    if data.get("eventType") not in EVENT_TYPES:
+        data["eventType"] = "other"
+    if data.get("severity") not in SEVERITIES:
+        data["severity"] = None
     conf = data.get("confidence")
-    if conf is not None and not (0.0 <= float(conf) <= 1.0):
-        raise ClassificationError(f"confidence out of range: {conf!r}")
+    if conf is not None:
+        try:
+            data["confidence"] = min(1.0, max(0.0, float(conf)))
+        except (TypeError, ValueError):
+            data["confidence"] = None
     summary = data.get("summary")
     if isinstance(summary, str) and len(summary) > 240:
         data["summary"] = summary[:240]
