@@ -148,3 +148,15 @@ Always show tests actually running — never claim something works without showi
   the model; only hits go to the extractor (OllamaExtractor local model, or KeywordExtractor
   fallback over a software catalog). Low-confidence (<=0.6) enrichment in company_tech_signals;
   raw JD text is processed in memory and NEVER stored.
+- Phase 2 false-positive fix (worker/seeding/ats.py): a probe hit is now VERIFIED before
+  storing. Greenhouse echoes the board owner's `company_name` on each job -> we require it to
+  agree with the Form D legal name (distinctive stems equal, or board = the issuer's leading
+  distinctive word >=5 chars; a shared short prefix is NOT enough). Lever has no name endpoint,
+  so the token must be a strong derivation of the name (full concat / domain SLD / leading word
+  >=5). Bare first-word tokens <5 chars are no longer probed. seed stats include `ats_rejected`.
+  Verified live: "APEX TECH GROWTH PARTNERS II, LLC" no longer matches the greenhouse board
+  "Apex Eye". This trades some recall for precision (user asked for fewer false positives);
+  the API-key DomainResolver remains the higher-recall path when a key is configured.
+- 8-K validation is lenient on the model's eventType/severity (coerced, not raised) because the
+  Item codes + rubric are authoritative; per-filing classify errors are isolated (classify_errors)
+  so one bad model response can't abort the nightly batch.

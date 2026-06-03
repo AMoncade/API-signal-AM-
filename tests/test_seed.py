@@ -14,7 +14,7 @@ import httpx
 from core.config import Settings
 from core.http_client import HttpClient
 from worker.form_d.models import CompanyRecord
-from worker.seeding.ats import AtsProber
+from worker.seeding.ats import AtsHit, AtsProber
 from worker.seeding.domain_resolver import DomainResult
 from worker.seeding.seed import seed_companies
 from worker.store import InMemoryStore
@@ -80,6 +80,30 @@ def test_seed_matches_ats_and_logs_run() -> None:
     # run logged as success
     assert store.runs[-1]["status"] == "success"
     assert store.runs[-1]["job_name"] == "seeding"
+
+
+class _FixedProber:
+    """Returns the same hit for any token (to exercise the verification gate)."""
+
+    def __init__(self, hit: AtsHit) -> None:
+        self._hit = hit
+
+    def probe_tokens(self, tokens):
+        return self._hit if tokens else None
+
+
+def test_seed_rejects_false_positive_match() -> None:
+    store = InMemoryStore()
+    store.upsert_company(CompanyRecord("0000000003", "Apex Tech Growth Partners, LLC", "DE"))
+    resolver = FakeResolver(
+        {"Apex Tech Growth Partners, LLC": DomainResult("apextechgrowthpartners.com", "resolved")}
+    )
+    # A coincidental greenhouse board named "Apex Fintech" must NOT be accepted.
+    prober = _FixedProber(AtsHit("greenhouse", "apex", 1, None, company_name="Apex Fintech"))
+    stats = seed_companies(None, store, resolver=resolver, prober=prober)
+    assert stats.ats_matched == 0
+    assert stats.ats_rejected == 1
+    assert "0000000003" not in store.ats
 
 
 def test_seed_skips_companies_already_seeded() -> None:

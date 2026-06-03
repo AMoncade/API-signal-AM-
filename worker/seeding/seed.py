@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from core.config import get_settings
 from core.http_client import HttpClient
-from worker.seeding.ats import AtsProber, board_tokens_from_domain
+from worker.seeding.ats import AtsProber, accept_ats_match, board_tokens_from_domain
 from worker.seeding.domain_resolver import Resolver, get_resolver, normalize_name_tokens
 from worker.store import Store
 
@@ -27,13 +27,14 @@ class SeedStats:
     domains_resolved: int = 0
     domains_failed: int = 0
     ats_matched: int = 0
+    ats_rejected: int = 0      # probe hit but failed name verification (likely false positive)
 
     def summary(self) -> str:
         dr = f"{self.domains_resolved}/{self.seen}" if self.seen else "0/0"
         ar = f"{self.ats_matched}/{self.seen}" if self.seen else "0/0"
         return (
             f"seen={self.seen} domains_resolved={dr} domains_failed={self.domains_failed} "
-            f"ats_matched={ar}"
+            f"ats_matched={ar} ats_rejected={self.ats_rejected}"
         )
 
 
@@ -50,13 +51,21 @@ def seed_one(store: Store, prober: AtsProber, resolver: Resolver, company, stats
     if not tokens:
         return
     hit = prober.probe_tokens(tokens)
-    if hit:
-        store.set_ats(company.cik, hit.provider, hit.token)
-        stats.ats_matched += 1
+    if not hit:
+        return
+    if not accept_ats_match(company.entity_name, hit, res.domain):
+        stats.ats_rejected += 1
         log.info(
-            "ATS hit: %s -> %s/%s (%d open)",
-            company.entity_name, hit.provider, hit.token, hit.open_positions,
+            "rejected likely false-positive ATS match: %s !~ %s/%s (board=%r)",
+            company.entity_name, hit.provider, hit.token, hit.company_name,
         )
+        return
+    store.set_ats(company.cik, hit.provider, hit.token)
+    stats.ats_matched += 1
+    log.info(
+        "ATS hit: %s -> %s/%s (%d open)",
+        company.entity_name, hit.provider, hit.token, hit.open_positions,
+    )
 
 
 def seed_companies(

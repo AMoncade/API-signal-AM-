@@ -108,6 +108,52 @@ curl http://localhost:8000/health
 > On Windows, `make` is usually not installed — use the `uv run ...` commands
 > directly (they are what the Makefile targets call).
 
+## Building the database (worker jobs)
+
+The worker turns live sources into signal rows in Supabase. On this dev box use
+`.venv\Scripts\python.exe -m worker ...`; on a machine with uv, `uv run python -m worker ...`.
+
+**Preview anything first (no DB writes, no API keys):**
+
+```bash
+python -m worker form_d   --dry-run --limit 25   # parse live Form D filings
+python -m worker seed     --dry-run --limit 80   # derive domains + match ATS (shows ats_rejected)
+python -m worker snapshot --dry-run --limit 60   # ingest -> seed -> snapshot counts
+python -m worker eight_k  --dry-run --limit 40   # deterministic 8-K Item-code classify (no LLM)
+python -m worker migrations --dry-run            # JD migration-hint extraction
+```
+
+**Build the real database (writes to Supabase; needs `SUPABASE_*` in `.env`):**
+
+```bash
+# One day's Form D filings (any past EDGAR business day, YYYYMMDD):
+python -m worker form_d --date 20260601
+# The whole pipeline once for the latest published index (8-K needs ANTHROPIC_API_KEY):
+python -m worker run-all
+# A specific date, capped (good for a first backfill without large LLM spend):
+python -m worker run-all --date 20260602 --limit 60
+```
+
+**Accumulate history (this is what makes velocity real):**
+
+```bash
+python -m worker schedule --hour 6     # runs the full pipeline daily at 06:00 UTC, forever
+```
+
+Velocity and `funded-and-hiring` have **no backfill** -- they only exist from the
+first job snapshot forward, so keep `schedule` running. Until ~30 days of snapshots
+accumulate, `surging-velocity` / `funded-and-hiring` are empty by design (seed a
+baseline snapshot to demo the join sooner; see the integration test).
+
+**Confirm it worked:**
+
+- API: `uvicorn api.main:app --reload` then GET `/signals/...` (or `/health`).
+- Or in the Supabase SQL editor:
+  ```sql
+  select job_name, status, items_processed, started_at from ingestion_runs order by started_at desc limit 10;
+  select count(*) from companies;  select count(*) from form_d_filings;
+  ```
+
 ## Tests
 
 ```bash

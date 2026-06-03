@@ -13,7 +13,14 @@ import httpx
 
 from core.config import Settings
 from core.http_client import HttpClient
-from worker.seeding.ats import AtsProber, board_tokens_from_domain
+from worker.seeding.ats import (
+    AtsHit,
+    AtsProber,
+    accept_ats_match,
+    board_tokens_from_domain,
+    names_agree,
+    token_is_name_justified,
+)
 
 ATS = Path(__file__).parent / "fixtures" / "ats"
 
@@ -53,6 +60,46 @@ def test_probe_greenhouse_hit_uses_meta_total() -> None:
     assert hit.provider == "greenhouse"
     assert hit.token == "stripe"
     assert hit.open_positions == 476          # from meta.total in the real response
+    assert hit.company_name == "Stripe"       # captured for verification
+
+
+def test_board_tokens_skip_short_generic_first_word() -> None:
+    # "Apex Tech Growth Partners" -> the bare "apex" (4 chars) is NOT probed; only
+    # the full concatenation / domain SLD are.
+    toks = board_tokens_from_domain("apextechgrowthpartners.com",
+                                    ["apex", "tech", "growth", "partners"])
+    assert "apex" not in toks
+    assert "apextechgrowthpartners" in toks
+
+
+def test_names_agree_precision() -> None:
+    assert names_agree("Stripe, Inc.", "Stripe") is True
+    assert names_agree("ClusterTruck, Inc.", "ClusterTruck") is True
+    assert names_agree("Robinhood Markets, Inc.", "Robinhood") is True   # board = distinctive first word
+    # the false-positive we are killing: only a short prefix coincides
+    assert names_agree("Apex Tech Growth Partners, LLC", "Apex Fintech") is False
+    assert names_agree("Summit Capital Partners, LP", "Stripe") is False
+    # NOTE: a board named exactly "Apex" *would* string-agree with an "Apex ..." issuer,
+    # but the bare token "apex" is never PROBED (see test_board_tokens_skip_short_generic_first_word),
+    # so that coincidence cannot reach the verifier in the real pipeline.
+
+
+def test_accept_ats_match_gate() -> None:
+    gh_ok = AtsHit("greenhouse", "stripe", 476, None, company_name="Stripe")
+    assert accept_ats_match("Stripe, Inc.", gh_ok) is True
+    gh_bad = AtsHit("greenhouse", "apex", 1, None, company_name="Apex Fintech")
+    assert accept_ats_match("Apex Tech Growth Partners, LLC", gh_bad) is False
+    # lever: token must be a strong derivation of the name
+    lever_ok = AtsHit("lever", "robinhood", 5, None)
+    assert accept_ats_match("Robinhood Markets, Inc.", lever_ok, "robinhood.com") is True
+    lever_bad = AtsHit("lever", "apex", 1, None)
+    assert accept_ats_match("Apex Tech Growth Partners, LLC", lever_bad) is False
+
+
+def test_token_is_name_justified() -> None:
+    assert token_is_name_justified("stripe", "Stripe, Inc.", "stripe.com") is True
+    assert token_is_name_justified("clustertruck", "ClusterTruck, Inc.") is True
+    assert token_is_name_justified("apex", "Apex Tech Growth Partners, LLC") is False
 
 
 def test_probe_greenhouse_miss_on_404_and_empty() -> None:
