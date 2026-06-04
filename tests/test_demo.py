@@ -74,3 +74,11 @@ def test_demo_mode_serves_sample_data_without_a_database(monkeypatch) -> None:
     assert client.get("/signals/pre-announced-funding").json()["count"] >= 1
     assert client.get("/signals/surging-velocity").json()["count"] >= 1
     assert client.get("/signals/material-risks").json()["count"] >= 1
+
+
+def test_blank_demo_flag_parses_as_false() -> None:
+    # A blank `SIGNALS_DEMO_DATA=` line in .env must mean "off", not crash boot.
+    assert Settings(_env_file=None, signals_demo_data="").signals_demo_data is False
+    assert Settings(_env_file=None, signals_demo_data="   ").signals_demo_data is False
+    assert Settings(_env_file=None, signals_demo_data="1").signals_demo_data is True
+    assert Settings(_env_file=None, signals_demo_data="true").signals_demo_data is True

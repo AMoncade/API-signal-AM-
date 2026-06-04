@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -70,6 +71,15 @@ class Settings(BaseSettings):
     # the global rate slot, so retrying never breaches the req/s cap. 0 disables.
     http_max_retries: int = 3
     http_retry_backoff_seconds: float = 0.5
+
+    @field_validator("signals_demo_data", mode="before")
+    @classmethod
+    def _blank_bool_is_false(cls, v: object) -> object:
+        # An empty env value (e.g. `SIGNALS_DEMO_DATA=` in .env) means "off", not a
+        # parse error. Without this, a blank line crashes Settings() on boot.
+        if isinstance(v, str) and v.strip() == "":
+            return False
+        return v
 
 
 @lru_cache
