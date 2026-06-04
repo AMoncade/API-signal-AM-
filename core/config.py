@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     # is read out of the JSON response. Provider-agnostic (see ApiDomainResolver).
     domain_resolver_api_url: str = ""
 
+    # --- Demo mode (Phase 5 / dashboard) -------------------------------------
+    # When true, the read API serves seeded SAMPLE data (api/demo_data.py) with no
+    # database and no supabase package, so the /demo dashboard renders populated.
+    # Strictly opt-in; leave false in production.
+    signals_demo_data: bool = False
+
     # --- RapidAPI proxy secret (Phase 5) -------------------------------------
     rapidapi_proxy_secret: str = ""
     # Header RapidAPI injects with the proxy secret. CONFIRM against current

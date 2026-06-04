@@ -182,3 +182,9 @@ Always show tests actually running — never claim something works without showi
   middleware still runs on every /signals call). Tests: tests/test_demo.py. NOTE: two agent
   sessions edited this repo concurrently on 2026-06-04 and clobbered each other's api/ edits;
   run ONE session at a time.
+- Demo data mode (SIGNALS_DEMO_DATA=1): get_repository() returns api/demo_data.DemoRepository
+  (seeded, in-memory, internally consistent across funding/velocity/join/migrations) instead of
+  SupabaseRepository, so /demo renders fully populated with NO database, NO credentials, and NO
+  supabase package installed. Strictly opt-in (default off); production reads the real DB. Added
+  because a fresh box has no supabase package -> every /signals call 500s on the lazy
+  `from supabase import ...`; demo mode never touches that import path.
