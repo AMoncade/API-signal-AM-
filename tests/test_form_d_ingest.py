@@ -10,6 +10,7 @@ exactly what gets written under the locked schema, and that the run is logged.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -17,8 +18,8 @@ import httpx
 
 from core.config import Settings
 from core.http_client import HttpClient
-from worker.edgar.daily_index import parse_master_idx
-from worker.form_d.ingest import ingest_one, RunStats
+from worker.edgar.daily_index import FilingRef, parse_master_idx
+from worker.form_d.ingest import ingest_form_d, ingest_one, RunStats
 from worker.store import InMemoryStore
 
 FIXTURES = Path(__file__).parent / "fixtures" / "form_d"
@@ -103,3 +104,64 @@ def test_ingest_is_idempotent_on_accession() -> None:
     assert rerun.skipped_existing == 3   # the 3 non-pooled filings already exist
     assert rerun.skipped_pooled == 1     # pooled is still filtered before the existence check matters
     assert len(store.filings) == 3       # no duplicates
+
+
+def _ref(cik: str, accession: str, url: str) -> FilingRef:
+    return FilingRef(
+        cik=cik,
+        company_name=f"CO {cik}",
+        submission_type="D",
+        filed_at=datetime(2026, 6, 2, tzinfo=timezone.utc),
+        accession_number=accession,
+        primary_doc_url=url,
+    )
+
+
+def test_one_unparseable_filing_does_not_abort_run(monkeypatch) -> None:
+    """A single malformed-but-HTTP-200 filing must be skipped+counted, NOT abort the
+    whole daily run. Regression guard: ingest_one previously let parse_form_d's
+    ValueError propagate, marking the run 'error' and dropping every later filing."""
+    feb = _ref(
+        "1369790",
+        "0001369790-26-000004",
+        "https://www.sec.gov/Archives/edgar/data/1369790/000136979026000004/primary_doc.xml",
+    )
+    bad_value = _ref(  # passes the '<edgarSubmission' gate but has no <primaryIssuer>
+        "9999999",
+        "9999999999-26-000001",
+        "https://www.sec.gov/Archives/edgar/data/9999999/bad-valueerror/primary_doc.xml",
+    )
+    bad_xml = _ref(  # well-formed prefix, then truncated -> XML ParseError
+        "9999998",
+        "9999999998-26-000001",
+        "https://www.sec.gov/Archives/edgar/data/9999998/bad-parseerror/primary_doc.xml",
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "bad-valueerror" in path:
+            return httpx.Response(200, text="<edgarSubmission><offeringData/></edgarSubmission>")
+        if "bad-parseerror" in path:
+            return httpx.Response(200, text="<edgarSubmission><unclosed>")
+        accession = "0001369790-26-000004"
+        return httpx.Response(200, text=(FIXTURES / f"{accession}.xml").read_text(encoding="utf-8"))
+
+    settings = Settings(_env_file=None, sec_user_agent="Test test@example.com")
+    client = HttpClient(settings, transport=httpx.MockTransport(handler))
+
+    # Stub discovery so ingest_form_d (the orchestrator) drives our three refs.
+    monkeypatch.setattr(
+        "worker.form_d.ingest.fetch_filing_refs",
+        lambda c, *, forms, date=None: [feb, bad_value, bad_xml],
+    )
+
+    store = InMemoryStore()
+    with client:
+        stats = ingest_form_d(client, store)   # must NOT raise
+
+    assert stats.stored == 1                    # FEB survived
+    assert stats.parse_errors == 2              # both bad filings skipped, not fatal
+    assert "0001369790" in store.companies
+    # the run completed successfully despite the two bad filings
+    assert store.runs[-1]["status"] == "success"
+    assert store.runs[-1]["items_processed"] == 1

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from xml.etree.ElementTree import ParseError
 
 from core.http_client import HttpClient
 from worker.edgar.daily_index import FilingRef, fetch_filing_refs
@@ -36,12 +37,14 @@ class RunStats:
     skipped_pooled: int = 0
     skipped_existing: int = 0
     fetch_errors: int = 0
+    parse_errors: int = 0
     stored_companies: list[str] = field(default_factory=list)
 
     def summary(self) -> str:
         return (
             f"seen={self.seen} stored={self.stored} pooled_skipped={self.skipped_pooled} "
-            f"already_present={self.skipped_existing} fetch_errors={self.fetch_errors}"
+            f"already_present={self.skipped_existing} fetch_errors={self.fetch_errors} "
+            f"parse_errors={self.parse_errors}"
         )
 
 
@@ -64,7 +67,17 @@ def ingest_one(client: HttpClient, store: Store, ref: FilingRef, stats: RunStats
         log.warning("no primary_doc.xml for %s (%s)", ref.accession_number, ref.primary_doc_url)
         return
 
-    parsed = parse_form_d(xml)
+    try:
+        parsed = parse_form_d(xml)
+    except (ValueError, ParseError) as exc:
+        # A single malformed-but-HTTP-200 filing (junk XML, missing/zero CIK, blank
+        # entityName) must NOT abort the whole daily run. Skip and count it, mirroring
+        # the per-filing isolation the 8-K path already has (classify_errors).
+        stats.parse_errors += 1
+        log.warning(
+            "unparseable Form D %s (%s): %s", ref.accession_number, ref.primary_doc_url, exc
+        )
+        return
 
     if parsed.is_pooled_fund:
         stats.skipped_pooled += 1

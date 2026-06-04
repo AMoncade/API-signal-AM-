@@ -160,3 +160,17 @@ Always show tests actually running — never claim something works without showi
 - 8-K validation is lenient on the model's eventType/severity (coerced, not raised) because the
   Item codes + rubric are authoritative; per-filing classify errors are isolated (classify_errors)
   so one bad model response can't abort the nightly batch.
+- Hardening pass (3 fixes): (1) the shared HttpClient now RETRIES transient failures (HTTP
+  429/500/502/503/504 and httpx.TransportError) with exponential backoff, honoring a numeric
+  Retry-After (the HTTP-date form falls back to backoff), capped at 30s. Each retry re-acquires
+  the global rate slot, so the <=10 req/s cap (HARD RULE #1) still holds across retries. Knobs:
+  http_max_retries (default 3), http_retry_backoff_seconds (default 0.5); 0 disables. POSTs are
+  retried too (Anthropic/Ollama) and the json body is resubmitted unchanged. (2) Form D ingest_one
+  now catches (ValueError, ParseError) from parse_form_d and counts it as stats.parse_errors,
+  instead of letting one malformed-but-HTTP-200 filing abort the whole daily run (it used to
+  propagate to ingest_form_d, mark the run 'error', and drop every later filing). Mirrors the 8-K
+  classify_errors isolation. (3) ApiDomainResolver is no longer a stub: with DOMAIN_RESOLVER_API_KEY
+  AND DOMAIN_RESOLVER_API_URL set it issues a real GET (Bearer key, ?name=&country=) via the shared
+  client and reads the domain from the JSON (provider-agnostic _extract over common shapes), falling
+  back to the heuristic on any non-200 / network error / empty result. get_resolver now requires
+  BOTH key and url (key-only still yields the heuristic, as before).

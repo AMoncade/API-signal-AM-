@@ -41,7 +41,12 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-4-6"
 
     # --- Optional domain resolver (Phase 2) ----------------------------------
+    # The accurate name -> domain path. Both the key AND a provider endpoint must
+    # be set for the API backend to engage; otherwise seeding uses the heuristic.
     domain_resolver_api_key: str = ""
+    # Provider endpoint queried with ?name=<legal name>&country=<state>; the domain
+    # is read out of the JSON response. Provider-agnostic (see ApiDomainResolver).
+    domain_resolver_api_url: str = ""
 
     # --- RapidAPI proxy secret (Phase 5) -------------------------------------
     rapidapi_proxy_secret: str = ""
@@ -55,6 +60,10 @@ class Settings(BaseSettings):
     # enforced GLOBALLY in the one shared client, so keep this <= 10.
     http_max_requests_per_second: float = 10.0
     http_timeout_seconds: float = 30.0
+    # Transient-failure retries (429/5xx + network errors). Each retry re-acquires
+    # the global rate slot, so retrying never breaches the req/s cap. 0 disables.
+    http_max_retries: int = 3
+    http_retry_backoff_seconds: float = 0.5
 
 
 @lru_cache
