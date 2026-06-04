@@ -174,3 +174,11 @@ Always show tests actually running — never claim something works without showi
   client and reads the domain from the JSON (provider-agnostic _extract over common shapes), falling
   back to the heuristic on any non-200 / network error / empty result. get_resolver now requires
   BOTH key and url (key-only still yields the heuristic, as before).
+- Demo dashboard (demo/dashboard.html, served at GET /demo): single file, no deps, renders the
+  four signal endpoints as live tables with provenance links. /demo is in EXEMPT_PATHS (it is a
+  static shell only) but its /signals fetches stay behind the proxy gate, so the demo only works
+  against an instance with RAPIDAPI_PROXY_SECRET unset. CORS middleware (GET-only, outermost)
+  added so the same file also works opened from disk; it does not weaken the gate (the proxy
+  middleware still runs on every /signals call). Tests: tests/test_demo.py. NOTE: two agent
+  sessions edited this repo concurrently on 2026-06-04 and clobbered each other's api/ edits;
+  run ONE session at a time.
