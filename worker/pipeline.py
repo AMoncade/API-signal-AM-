@@ -43,9 +43,17 @@ def run_all(
     results["job_snapshots"] = snapshot_jobs(client, store, limit=limit)
 
     if classifier is not None:
-        results["eight_k"] = ingest_eight_k(client, store, classifier, date=date, limit=limit)
+        from core.config import get_settings
+
+        results["eight_k"] = ingest_eight_k(
+            client, store, classifier, date=date, limit=limit,
+            skip_low_value=get_settings().eight_k_skip_low_value,
+        )
     else:
-        log.warning("8-K classification skipped: no ANTHROPIC_API_KEY (HARD RULE #9).")
+        log.warning(
+            "8-K classification skipped: no classifier "
+            "(set ANTHROPIC_API_KEY, or EIGHT_K_PROVIDER=ollama for a free local model)."
+        )
 
     def _postings():
         for company in store.companies_with_ats(limit):

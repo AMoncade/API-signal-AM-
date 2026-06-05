@@ -113,6 +113,18 @@ curl http://localhost:8000/health
 The worker turns live sources into signal rows in Supabase. On this dev box use
 `.venv\Scripts\python.exe -m worker ...`; on a machine with uv, `uv run python -m worker ...`.
 
+**Quick launchers (Windows, run from anywhere):**
+
+```powershell
+.\scan.ps1                         # full nightly pipeline (run-all)
+.\scan.ps1 form_d --date 20260603  # any worker job + args (free signals)
+.\dashboard.ps1                    # serve the API + open Swagger at /docs
+```
+
+`scan.ps1` / `dashboard.ps1` find the project folder and venv themselves (and the
+app now loads `.env` by absolute path), so they work from any directory. If
+PowerShell blocks a script, run `powershell -ExecutionPolicy Bypass -File .\scan.ps1`.
+
 **Preview anything first (no DB writes, no API keys):**
 
 ```bash
@@ -153,6 +165,27 @@ baseline snapshot to demo the join sooner; see the integration test).
   select job_name, status, items_processed, started_at from ingestion_runs order by started_at desc limit 10;
   select count(*) from companies;  select count(*) from form_d_filings;
   ```
+
+## 8-K classification: cost and free/cheaper options
+
+Only the **8-K `material-risks`** signal calls a language model (Form D, velocity,
+the join, and migrations are all free). The default is the hosted Anthropic model,
+which can run a few dollars for a busy day. Set these in `.env` to cut or remove cost:
+
+| Goal | Setting |
+|---|---|
+| **Free, local, no key** (run a model on your own machine via [Ollama](https://ollama.com)) | `EIGHT_K_PROVIDER=ollama` then `ollama pull llama3.1` |
+| **~10x cheaper hosted** | `ANTHROPIC_MODEL=claude-haiku-4-5-20251001` |
+| **Fewer calls** (skip 8.01 "Other" + 1.01/1.02 contract items) | `EIGHT_K_SKIP_LOW_VALUE=true` |
+| **Skip 8-K entirely** | leave `ANTHROPIC_API_KEY` empty and `EIGHT_K_PROVIDER=anthropic` |
+
+With Ollama: install it, run `ollama pull llama3.1` (or `qwen2.5`), set
+`EIGHT_K_PROVIDER=ollama`, and scans cost nothing and aren't gated by API latency.
+The event TYPE is always set deterministically from the Item codes and severity from
+the rubric, so the local model only fills specifics — a small local model is fine.
+The LLM input is also capped at ~12k chars (the event narrative, not the exhibits)
+to keep both cost and latency down. Note: the per-request pacing you saw is mostly
+model latency on sequential calls; Ollama (local) or Haiku (faster) both reduce it.
 
 ## Tests
 

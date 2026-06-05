@@ -10,8 +10,14 @@ the point of use (e.g. the HTTP client refuses sec.gov requests without
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Absolute path to the repo's .env (one level up from this file). Using an absolute
+# path means the worker/API find .env no matter which directory they are started
+# from, so `python -m worker ...` works from anywhere (not just the repo root).
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -19,7 +25,7 @@ class Settings(BaseSettings):
     env vars documented in ``.env.example`` (playbook §1.2)."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
@@ -34,11 +40,22 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: str = ""
 
-    # --- 8-K classification (Phase 4) — HOSTED model only --------------------
+    # --- 8-K classification (Phase 4) ----------------------------------------
+    # Provider for the 8-K prose step:
+    #   'anthropic' (hosted, high quality, costs per call) or
+    #   'ollama'    (a LOCAL model via Ollama — free, no API key, no per-call cost).
+    eight_k_provider: str = "anthropic"
     anthropic_api_key: str = ""
-    # Hosted model for 8-K classification (low volume, high stakes — spec §4 says
-    # this is the one place to pay the quality premium). Override via env if needed.
+    # Hosted model. Default Sonnet; set ANTHROPIC_MODEL=claude-haiku-4-5-20251001 for
+    # ~10x cheaper + faster classification (good enough since Item codes are
+    # deterministic and the model only fills specifics + severity).
     anthropic_model: str = "claude-sonnet-4-6"
+    # Local model (used when eight_k_provider='ollama'). Free; needs Ollama running.
+    ollama_chat_url: str = "http://localhost:11434/api/chat"
+    ollama_model: str = "llama3.1"
+    # Cost control: skip the low-value, high-volume 8-K items (8.01 Other, 1.01/1.02
+    # contract changes) so the model is only called on genuinely material events.
+    eight_k_skip_low_value: bool = False
 
     # --- Optional domain resolver (Phase 2) ----------------------------------
     domain_resolver_api_key: str = ""

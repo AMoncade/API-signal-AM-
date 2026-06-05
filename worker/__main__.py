@@ -139,15 +139,21 @@ def _run_eight_k(args: argparse.Namespace) -> None:
             )
         return
 
-    from worker.eight_k.classifier import AnthropicClassifier
     from worker.eight_k.ingest import ingest_eight_k
     from worker.store import SupabaseStore
 
+    settings = get_settings()
     store = SupabaseStore()
     with HttpClient() as client:
-        classifier = AnthropicClassifier(client)   # requires ANTHROPIC_API_KEY (HARD RULE #9)
-        log.info("Phase 4 8-K - classifying with hosted model, writing to Supabase")
-        stats = ingest_eight_k(client, store, classifier, date=args.date, limit=args.limit)
+        classifier = _build_classifier(client)
+        if classifier is None:
+            print("No 8-K classifier: set ANTHROPIC_API_KEY, or EIGHT_K_PROVIDER=ollama (free, local).")
+            return
+        log.info("Phase 4 8-K - provider=%s, writing to Supabase", settings.eight_k_provider)
+        stats = ingest_eight_k(
+            client, store, classifier, date=args.date, limit=args.limit,
+            skip_low_value=settings.eight_k_skip_low_value,
+        )
     print("\n=== 8-K ingest summary ===")
     print(stats.summary())
 
@@ -186,12 +192,11 @@ def _run_migrations(args: argparse.Namespace) -> None:
 
 
 def _build_classifier(client):
-    """An AnthropicClassifier when a key is set, else None (8-K is then skipped)."""
-    if not get_settings().anthropic_api_key:
-        return None
-    from worker.eight_k.classifier import AnthropicClassifier
+    """Pick the 8-K classifier from config (hosted Anthropic or free local Ollama);
+    None means skip 8-K (hosted selected but no key)."""
+    from worker.eight_k.classifier import get_classifier
 
-    return AnthropicClassifier(client)
+    return get_classifier(client)
 
 
 def _run_all(args: argparse.Namespace) -> None:

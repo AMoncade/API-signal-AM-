@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
+import httpx
 import pytest
 
-from worker.eight_k.classifier import ClassificationError, validate_classification
+from core.config import Settings
+from core.http_client import HttpClient
+from worker.eight_k.classifier import (
+    AnthropicClassifier,
+    ClassificationError,
+    OllamaClassifier,
+    get_classifier,
+    validate_classification,
+)
 from worker.eight_k.severity import apply_severity_override
 
 
@@ -72,3 +81,51 @@ def test_validate_truncates_long_summary() -> None:
     long = "x" * 300
     data = validate_classification(f'{{"summary":"{long}","confidence":0.5}}')
     assert len(data["summary"]) == 240
+
+
+# --- provider selection + local (Ollama) classifier --------------------------
+
+def _client() -> HttpClient:
+    return HttpClient(Settings(_env_file=None), transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+
+
+def test_get_classifier_selects_provider() -> None:
+    with _client() as c:
+        # free local model: no key required
+        assert isinstance(
+            get_classifier(c, Settings(_env_file=None, eight_k_provider="ollama")),
+            OllamaClassifier,
+        )
+        # hosted with a key
+        assert isinstance(
+            get_classifier(c, Settings(_env_file=None, eight_k_provider="anthropic", anthropic_api_key="sk-x")),
+            AnthropicClassifier,
+        )
+        # hosted without a key -> None (8-K skipped, not a crash)
+        assert get_classifier(c, Settings(_env_file=None, eight_k_provider="anthropic")) is None
+
+
+def test_ollama_classifier_parses_local_response() -> None:
+    body = (
+        '{"eventType":"exec_departure","severity":"high","isAbrupt":true,'
+        '"affectedRole":"CEO","summary":"CEO resigned.","confidence":0.8}'
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={
+            "message": {"content": body}, "prompt_eval_count": 120, "eval_count": 40,
+        })
+
+    client = HttpClient(Settings(_env_file=None), transport=httpx.MockTransport(handler))
+    result = OllamaClassifier(client).classify(text="...", item_codes=["5.02"], entity_name="Acme")
+    client.close()
+    assert result.data["isAbrupt"] is True
+    assert result.input_tokens == 120 and result.output_tokens == 40
+
+
+def test_ollama_classifier_raises_when_server_down() -> None:
+    # transport returns 404 -> raise_for_status fails -> ClassificationError (isolated per filing)
+    client = HttpClient(Settings(_env_file=None), transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+    with pytest.raises(ClassificationError):
+        OllamaClassifier(client).classify(text="x", item_codes=["1.03"], entity_name="Acme")
+    client.close()

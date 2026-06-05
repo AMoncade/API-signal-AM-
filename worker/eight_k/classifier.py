@@ -161,3 +161,59 @@ class AnthropicClassifier:
             input_tokens=int(usage.get("input_tokens", 0)),
             output_tokens=int(usage.get("output_tokens", 0)),
         )
+
+
+class OllamaClassifier:
+    """Free, LOCAL classifier via Ollama (no API key, no per-call cost).
+
+    A capable local model (e.g. llama3.1, qwen2.5) is plenty here because the event
+    TYPE is already fixed by the Item codes and severity is overridden by the rubric;
+    the model only fills specifics + a proposed severity. Requires a running Ollama
+    server with the model pulled (``ollama pull llama3.1``)."""
+
+    def __init__(self, client: HttpClient, *, model: str = "llama3.1",
+                 url: str = "http://localhost:11434/api/chat") -> None:
+        self._client = client
+        self._model = model
+        self._url = url
+
+    def classify(self, *, text: str, item_codes: list[str], entity_name: str) -> ClassificationResult:
+        user = (
+            f"Item codes: {', '.join(item_codes)}\nIssuer: {entity_name}\n\n"
+            f"Output JSON matching exactly this schema:\n{json.dumps(OUTPUT_SCHEMA)}\n\n"
+            f"8-K plain text:\n{text}"
+        )
+        try:
+            resp = self._client.post(
+                self._url,
+                json={
+                    "model": self._model,
+                    "format": "json",
+                    "stream": False,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user},
+                    ],
+                },
+            )
+            resp.raise_for_status()
+        except Exception as exc:  # noqa: BLE001 - server down / unreachable
+            raise ClassificationError(f"Ollama request failed: {exc}") from exc
+        payload = resp.json()
+        out_text = (payload.get("message") or {}).get("content", "")
+        return ClassificationResult(
+            data=validate_classification(out_text),
+            input_tokens=int(payload.get("prompt_eval_count", 0)),
+            output_tokens=int(payload.get("eval_count", 0)),
+        )
+
+
+def get_classifier(client: HttpClient, settings: Settings | None = None) -> Classifier | None:
+    """Pick the 8-K classifier from config. Returns None (skip 8-K) only when the
+    hosted provider is selected but no ANTHROPIC_API_KEY is set."""
+    settings = settings or get_settings()
+    if settings.eight_k_provider.lower() == "ollama":
+        return OllamaClassifier(client, model=settings.ollama_model, url=settings.ollama_chat_url)
+    if settings.anthropic_api_key:
+        return AnthropicClassifier(client, settings)
+    return None

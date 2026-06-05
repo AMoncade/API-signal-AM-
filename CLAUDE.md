@@ -160,3 +160,11 @@ Always show tests actually running — never claim something works without showi
 - 8-K validation is lenient on the model's eventType/severity (coerced, not raised) because the
   Item codes + rubric are authoritative; per-filing classify errors are isolated (classify_errors)
   so one bad model response can't abort the nightly batch.
+- 8-K cost/provider: EIGHT_K_PROVIDER selects 'anthropic' (hosted) or 'ollama' (FREE local model
+  via worker/eight_k/classifier.OllamaClassifier -> get_classifier factory). ANTHROPIC_MODEL can be
+  set to claude-haiku-4-5-20251001 (~10x cheaper). EIGHT_K_SKIP_LOW_VALUE skips 8.01/1.01/1.02
+  (high volume, low value). LLM input capped at 12k chars (was 50k). A user reported ~$5/day on
+  Sonnet; these knobs address that. The per-request pacing is mostly sequential model latency.
+- `.env` now loads by ABSOLUTE path (core/config: _ENV_FILE = repo/.env), so `python -m worker ...`
+  works from ANY directory. Convenience launchers `scan.ps1` / `dashboard.ps1` resolve the repo +
+  venv themselves.

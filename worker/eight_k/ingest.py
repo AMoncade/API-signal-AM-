@@ -30,7 +30,9 @@ log = logging.getLogger("worker.eight_k")
 _ARCHIVES = "https://www.sec.gov/Archives/edgar/data"
 _TAG_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"[ \t]+")
-_MAX_TEXT_CHARS = 50_000  # bound the LLM input; 8-K bodies are short, exhibits are not
+_MAX_TEXT_CHARS = 12_000  # bound the LLM input (cost + speed); the event narrative is
+#                           near the top of an 8-K, the long tail is exhibits.
+_LOW_VALUE_EVENTS = {"contract_change", "other"}  # high-volume, low signal value
 
 
 def submission_txt_url(ref: FilingRef) -> str:
@@ -94,7 +96,13 @@ class EightKStats:
 
 
 def classify_one(
-    client: HttpClient, store: Store, classifier: Classifier, ref: FilingRef, stats: EightKStats
+    client: HttpClient,
+    store: Store,
+    classifier: Classifier,
+    ref: FilingRef,
+    stats: EightKStats,
+    *,
+    skip_low_value: bool = False,
 ) -> EightKEventRecord | None:
     if store.eight_k_exists(ref.accession_number):
         stats.skipped_existing += 1
@@ -106,7 +114,7 @@ def classify_one(
     full_txt = resp.text
     codes = item_codes_from_header(split_header(full_txt))
     event = headline_event(codes)
-    if event is None:
+    if event is None or (skip_low_value and event[0] in _LOW_VALUE_EVENTS):
         stats.skipped_non_event += 1
         return None
     event_type, _default_sev = event
@@ -154,6 +162,7 @@ def ingest_eight_k(
     *,
     date: str | None = None,
     limit: int | None = None,
+    skip_low_value: bool = False,
 ) -> EightKStats:
     stats = EightKStats()
     run_id = store.start_run("eight_k")
@@ -164,7 +173,7 @@ def ingest_eight_k(
         stats.seen = len(refs)
         log.info("8-K ingest: %d filings to scan", stats.seen)
         for ref in refs:
-            classify_one(client, store, classifier, ref, stats)
+            classify_one(client, store, classifier, ref, stats, skip_low_value=skip_low_value)
         store.finish_run(
             run_id, status="success", items_processed=stats.classified, notes=stats.summary()
         )
