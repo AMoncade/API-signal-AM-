@@ -168,3 +168,31 @@ Always show tests actually running — never claim something works without showi
 - `.env` now loads by ABSOLUTE path (core/config: _ENV_FILE = repo/.env), so `python -m worker ...`
   works from ANY directory. Convenience launchers `scan.ps1` / `dashboard.ps1` resolve the repo +
   venv themselves.
+- Hardening pass (3 fixes): (1) the shared HttpClient now RETRIES transient failures (HTTP
+  429/500/502/503/504 and httpx.TransportError) with exponential backoff, honoring a numeric
+  Retry-After (the HTTP-date form falls back to backoff), capped at 30s. Each retry re-acquires
+  the global rate slot, so the <=10 req/s cap (HARD RULE #1) still holds across retries. Knobs:
+  http_max_retries (default 3), http_retry_backoff_seconds (default 0.5); 0 disables. POSTs are
+  retried too (Anthropic/Ollama) and the json body is resubmitted unchanged. (2) Form D ingest_one
+  now catches (ValueError, ParseError) from parse_form_d and counts it as stats.parse_errors,
+  instead of letting one malformed-but-HTTP-200 filing abort the whole daily run (it used to
+  propagate to ingest_form_d, mark the run 'error', and drop every later filing). Mirrors the 8-K
+  classify_errors isolation. (3) ApiDomainResolver is no longer a stub: with DOMAIN_RESOLVER_API_KEY
+  AND DOMAIN_RESOLVER_API_URL set it issues a real GET (Bearer key, ?name=&country=) via the shared
+  client and reads the domain from the JSON (provider-agnostic _extract over common shapes), falling
+  back to the heuristic on any non-200 / network error / empty result. get_resolver now requires
+  BOTH key and url (key-only still yields the heuristic, as before).
+- Demo dashboard (demo/dashboard.html, served at GET /demo): single file, no deps, renders the
+  four signal endpoints as live tables with provenance links. /demo is in EXEMPT_PATHS (it is a
+  static shell only) but its /signals fetches stay behind the proxy gate, so the demo only works
+  against an instance with RAPIDAPI_PROXY_SECRET unset. CORS middleware (GET-only, outermost)
+  added so the same file also works opened from disk; it does not weaken the gate (the proxy
+  middleware still runs on every /signals call). Tests: tests/test_demo.py. NOTE: two agent
+  sessions edited this repo concurrently on 2026-06-04 and clobbered each other's api/ edits;
+  run ONE session at a time.
+- Demo data mode (SIGNALS_DEMO_DATA=1): get_repository() returns api/demo_data.DemoRepository
+  (seeded, in-memory, internally consistent across funding/velocity/join/migrations) instead of
+  SupabaseRepository, so /demo renders fully populated with NO database, NO credentials, and NO
+  supabase package installed. Strictly opt-in (default off); production reads the real DB. Added
+  because a fresh box has no supabase package -> every /signals call 500s on the lazy
+  `from supabase import ...`; demo mode never touches that import path.

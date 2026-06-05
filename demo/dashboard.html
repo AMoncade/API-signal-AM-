@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<!--
+  Demo dashboard: renders the four live signal endpoints in a browser.
+  Single file, zero dependencies, works offline against any reachable instance.
+
+  How to use:
+    1. Start the API:  uvicorn api.main:app --reload
+    2. Open http://localhost:8000/demo  (served by the API, same origin)
+       ...or open this file directly from disk and point "API base" at the API.
+
+  Notes:
+    - In production the /signals routes sit behind the RapidAPI proxy-secret gate,
+      so demo against a dev instance with RAPIDAPI_PROXY_SECRET unset.
+    - funded-and-hiring and surging-velocity are EMPTY until ~30 days of job
+      snapshots accumulate (no backfill, by design). The page says so.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corporate Intent Intelligence - live signals demo</title>
+<style>
+  :root {
+    --bg: #0c1117; --panel: #131a23; --panel2: #182230; --line: #243042;
+    --text: #dce6f2; --dim: #8295ab; --accent: #2fd4e0; --accent-dim: #1a7e87;
+    --green: #3ecf8e; --amber: #e8b339; --red: #e8606d; --crit: #ff3b4e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--panel);
+    position: sticky; top: 0; z-index: 5;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+  header h1 span { color: var(--accent); }
+  .spacer { flex: 1; }
+  .ctrl { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  input[type=text] {
+    background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 9px; font-size: 13px; width: 230px;
+  }
+  button {
+    background: var(--accent-dim); color: #eafcfd; border: 0; border-radius: 6px;
+    padding: 7px 14px; font-size: 13px; cursor: pointer; font-weight: 600;
+  }
+  button:hover { background: var(--accent); color: #06262a; }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--dim); font-weight: 500; }
+  button.ghost:hover { color: var(--text); border-color: var(--dim); }
+  #status { font-size: 12px; color: var(--dim); }
+  #status.err { color: var(--red); }
+  main { max-width: 1240px; margin: 0 auto; padding: 20px 22px 60px; }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    margin-bottom: 22px; overflow: hidden;
+  }
+  section.headline { border-color: var(--accent-dim); box-shadow: 0 0 0 1px var(--accent-dim); }
+  .sec-head {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline;
+    padding: 13px 16px; border-bottom: 1px solid var(--line); background: var(--panel2);
+  }
+  .sec-head h2 { font-size: 14px; margin: 0; font-weight: 600; }
+  .sec-head .tag {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--accent);
+    border: 1px solid var(--accent-dim); border-radius: 4px; padding: 1px 6px;
+  }
+  .sec-head .ep { font-size: 12px; color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
+  .sec-head .n { font-size: 12px; color: var(--dim); margin-left: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--dim); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  tr:hover td { background: rgba(47, 212, 224, .035); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .ent { font-weight: 600; }
+  .sub { color: var(--dim); font-size: 12px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .chip {
+    display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px;
+    padding: 1px 9px; text-transform: capitalize;
+  }
+  .chip.low      { background: #1d2c3f; color: #9fb6cf; }
+  .chip.medium   { background: #3a300f; color: var(--amber); }
+  .chip.high     { background: #43181d; color: var(--red); }
+  .chip.critical { background: #561019; color: #ff8b96; }
+  .mig {
+    display: inline-block; font-size: 11px; background: #10242b; color: var(--accent);
+    border: 1px solid var(--accent-dim); border-radius: 4px; padding: 0 6px; margin: 1px 2px 1px 0;
+  }
+  .ratio { color: var(--green); font-weight: 700; }
+  .empty { padding: 26px 16px; color: var(--dim); font-size: 13px; }
+  .empty b { color: var(--text); }
+  .foot { padding: 10px 16px; }
+  .filters { display: flex; gap: 8px; align-items: center; }
+  select, input[type=date] {
+    background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 8px; font-size: 12px;
+  }
+  footer { text-align: center; color: var(--dim); font-size: 12px; padding: 8px 0 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Corporate Intent <span>Intelligence</span> - live signals</h1>
+  <div class="spacer"></div>
+  <div class="ctrl">API base
+    <input type="text" id="base" placeholder="http://localhost:8000">
+  </div>
+  <button id="refresh">Refresh all</button>
+  <span id="status"></span>
+</header>
+
+<main>
+  <section class="headline" id="sec-join">
+    <div class="sec-head">
+      <h2>Funded &amp; Hiring</h2><span class="tag">headline join</span>
+      <span class="ep">GET /signals/funded-and-hiring</span><span class="n"></span>
+    </div>
+    <div class="body"></div>
+    <div class="foot"></div>
+  </section>
+
+  <section id="sec-funding">
+    <div class="sec-head">
+      <h2>Pre-announced Funding</h2>
+      <span class="ep">GET /signals/pre-announced-funding</span><span class="n"></span>
+    </div>
+    <div class="body"></div>
+    <div class="foot"></div>
+  </section>
+
+  <section id="sec-velocity">
+    <div class="sec-head">
+      <h2>Surging Hiring Velocity</h2>
+      <span class="ep">GET /signals/surging-velocity</span>
+      <div class="filters">
+        <label class="sub">min ratio
+          <select id="min-ratio">
+            <option value="">any</option><option value="2">2x</option>
+            <option value="3">3x</option><option value="5">5x</option>
+          </select>
+        </label>
+      </div>
+      <span class="n"></span>
+    </div>
+    <div class="body"></div>
+    <div class="foot"></div>
+  </section>
+
+  <section id="sec-risks">
+    <div class="sec-head">
+      <h2>Material Risks (8-K)</h2>
+      <span class="ep">GET /signals/material-risks</span>
+      <div class="filters">
+        <label class="sub">severity
+          <select id="severity">
+            <option value="">all</option><option>critical</option>
+            <option>high</option><option>medium</option><option>low</option>
+          </select>
+        </label>
+      </div>
+      <span class="n"></span>
+    </div>
+    <div class="body"></div>
+    <div class="foot"></div>
+  </section>
+</main>
+
+<footer>Sources: SEC EDGAR (Form D, 8-K) + public Greenhouse/Lever job boards.
+Every row links to its primary source.</footer>
+
+<script>
+"use strict";
+
+/* ---------- helpers ---------------------------------------------------- */
+
+const $ = (sel, el) => (el || document).querySelector(sel);
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function money(v) {
+  if (v == null) return "-";
+  const n = Number(v);
+  if (!isFinite(n)) return esc(v);
+  if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return "$" + Math.round(n / 1e3) + "K";
+  return "$" + n;
+}
+
+function dt(v) { return v ? esc(String(v).slice(0, 10)) : "-"; }
+
+function link(url, label) {
+  return url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>` : esc(label);
+}
+
+function migTags(migs) {
+  if (!migs || !migs.length) return "";
+  return migs.map(m =>
+    `<span class="mig" title="confidence ${m.confidence ?? "?"}">${esc(m.software)}</span>`).join("");
+}
+
+function apiBase() {
+  const v = $("#base").value.trim().replace(/\/+$/, "");
+  return v;
+}
+
+/* ---------- generic section plumbing ----------------------------------- */
+
+const PAGE_SIZE = 15;
+
+const SECTIONS = {
+  join: {
+    el: "#sec-join", path: "/signals/funded-and-hiring", page: 1,
+    params: () => ({}),
+    head: ["Company", "Domain", "Last Form D", "Amount sold", "Open roles", "Velocity", "Migrations"],
+    row: r => [
+      `<span class="ent">${esc(r.entity_name || r.cik)}</span><div class="sub">CIK ${esc(r.cik)}</div>`,
+      r.derived_domain ? link("https://" + r.derived_domain, r.derived_domain) : "-",
+      dt(r.latest_filing_date),
+      money(r.latest_amount_sold_usd),
+      `${r.current_open ?? "-"} <span class="sub">(was ${r.baseline_open ?? "-"})</span>`,
+      r.velocity_ratio ? `<span class="ratio">${Number(r.velocity_ratio).toFixed(1)}×</span>` : "-",
+      migTags(r.migrations) || "-",
+    ],
+    empty: `No rows yet. <b>This is expected for ~30 days after launch:</b> the join needs a
+            company with a recent Form D AND a doubled open-role count vs its 30-day-old
+            baseline, and snapshots have no backfill. The moment history exists, rows appear here.`,
+  },
+  funding: {
+    el: "#sec-funding", path: "/signals/pre-announced-funding", page: 1,
+    params: () => ({}),
+    head: ["Company", "State", "Industry", "Filed", "Type", "Offering", "Sold (cum.)", "New money", "Source"],
+    row: r => [
+      `<span class="ent">${esc(r.entity_name || r.cik)}</span><div class="sub">CIK ${esc(r.cik)}</div>`,
+      esc(r.state_or_country || "-"),
+      esc(r.industry_group || "-"),
+      dt(r.filed_at),
+      esc(r.submission_type || "-"),
+      r.total_offering_amount_usd != null ? money(r.total_offering_amount_usd)
+                                          : esc(r.total_offering_amount_raw || "-"),
+      money(r.total_amount_sold_usd),
+      money(r.incremental_amount_sold_usd),
+      link(r.source_url, "EDGAR ↗"),
+    ],
+    empty: `No filings stored yet. Run the worker: <b>python -m worker form_d</b>`,
+  },
+  velocity: {
+    el: "#sec-velocity", path: "/signals/surging-velocity", page: 1,
+    params: () => { const m = $("#min-ratio").value; return m ? { min_ratio: m } : {}; },
+    head: ["Company", "Domain", "Open roles", "Baseline", "Velocity", "As of", "Board"],
+    row: r => [
+      `<span class="ent">${esc(r.entity_name || r.cik)}</span><div class="sub">CIK ${esc(r.cik)}</div>`,
+      r.derived_domain ? link("https://" + r.derived_domain, r.derived_domain) : "-",
+      String(r.current_open ?? "-"),
+      `${r.baseline_open ?? "-"} <span class="sub">${dt(r.baseline_date)}</span>`,
+      r.velocity_ratio ? `<span class="ratio">${Number(r.velocity_ratio).toFixed(1)}×</span>` : "-",
+      dt(r.latest_date),
+      link(r.source_url, (r.ats_provider || "board") + " ↗"),
+    ],
+    empty: `Empty until ~30 days of snapshots exist (surging = current ≥ 2× the 30-day-old
+            baseline; no backfill). Keep the worker running.`,
+  },
+  risks: {
+    el: "#sec-risks", path: "/signals/material-risks", page: 1,
+    params: () => { const s = $("#severity").value; return s ? { severity: s } : {}; },
+    head: ["Company", "Filed", "Event", "Severity", "Items", "Summary", "Source"],
+    row: r => [
+      `<span class="ent">${esc(r.entity_name || r.cik)}</span><div class="sub">CIK ${esc(r.cik)}</div>`,
+      dt(r.filed_at),
+      esc((r.event_type || "").replace(/_/g, " ")) +
+        (r.affected_role ? `<div class="sub">${esc(r.affected_role)}${r.is_abrupt ? " · abrupt" : ""}</div>` : ""),
+      `<span class="chip ${esc(r.severity)}">${esc(r.severity)}</span>`,
+      `<span class="sub">${esc((r.item_codes || []).join(", "))}</span>`,
+      esc(r.summary || "-"),
+      link(r.source_url, "EDGAR ↗"),
+    ],
+    empty: `No 8-K events stored yet. Run the worker with an ANTHROPIC_API_KEY:
+            <b>python -m worker eight_k</b>`,
+  },
+};
+
+async function fetchPage(sec, page) {
+  const qs = new URLSearchParams({ page: String(page), page_size: String(PAGE_SIZE), ...sec.params() });
+  const resp = await fetch(`${apiBase()}${sec.path}?${qs}`, { headers: { Accept: "application/json" } });
+  if (!resp.ok) {
+    let detail = `HTTP ${resp.status}`;
+    try { detail += " - " + ((await resp.json()).detail || ""); } catch (e) { /* not json */ }
+    throw new Error(detail);
+  }
+  return resp.json();
+}
+
+function renderRows(sec, items, append) {
+  const body = $(sec.el + " .body");
+  if (!items.length && !append) {
+    body.innerHTML = `<div class="empty">${sec.empty}</div>`;
+    return;
+  }
+  let table = $("table", body);
+  if (!table || !append) {
+    body.innerHTML =
+      `<table><thead><tr>${sec.head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody></tbody></table>`;
+    table = $("table", body);
+  }
+  const tbody = $("tbody", table);
+  for (const r of items) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = sec.row(r).map(c => `<td>${c}</td>`).join("");
+    tbody.appendChild(tr);
+  }
+}
+
+async function loadSection(key, { append = false } = {}) {
+  const sec = SECTIONS[key];
+  const head = $(sec.el + " .sec-head .n");
+  const foot = $(sec.el + " .foot");
+  if (!append) sec.page = 1;
+  try {
+    const data = await fetchPage(sec, sec.page);
+    renderRows(sec, data.items, append);
+    const shown = $(sec.el + " tbody") ? $(sec.el + " tbody").children.length : 0;
+    head.textContent = shown ? `${shown} row${shown === 1 ? "" : "s"}${data.has_more ? "+" : ""}` : "";
+    foot.innerHTML = data.has_more ? `<button class="ghost" data-more="${key}">Load more</button>` : "";
+    return true;
+  } catch (err) {
+    const hint = /403/.test(err.message)
+      ? `<br><span class="sub">The proxy-secret gate is closed on this instance. Demo against a dev
+         instance started without RAPIDAPI_PROXY_SECRET.</span>`
+      : `<br><span class="sub">Is the API running? <b>uvicorn api.main:app --reload</b>, then set
+         the API base above (or open this page at <b>/demo</b> on the API itself).</span>`;
+    $(sec.el + " .body").innerHTML = `<div class="empty">Could not load: ${esc(err.message)}${hint}</div>`;
+    head.textContent = ""; foot.innerHTML = "";
+    return false;
+  }
+}
+
+async function loadAll() {
+  const status = $("#status");
+  status.className = ""; status.textContent = "loading…";
+  const results = await Promise.all(Object.keys(SECTIONS).map(k => loadSection(k)));
+  const ok = results.filter(Boolean).length;
+  if (ok === results.length) {
+    status.textContent = "live · " + new Date().toLocaleTimeString();
+  } else {
+    status.className = "err";
+    status.textContent = `${results.length - ok} of ${results.length} sections failed`;
+  }
+}
+
+/* ---------- events ------------------------------------------------------ */
+
+document.addEventListener("click", e => {
+  const key = e.target && e.target.dataset && e.target.dataset.more;
+  if (key) { SECTIONS[key].page += 1; loadSection(key, { append: true }); }
+});
+$("#refresh").addEventListener("click", loadAll);
+$("#base").addEventListener("change", loadAll);
+$("#min-ratio").addEventListener("change", () => loadSection("velocity"));
+$("#severity").addEventListener("change", () => loadSection("risks"));
+
+/* Same-origin when served at /demo by the API; localhost default otherwise. */
+$("#base").value = (location.protocol === "http:" || location.protocol === "https:")
+  ? "" : "http://localhost:8000";
+loadAll();
+</script>
+</body>
+</html>

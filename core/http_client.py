@@ -9,20 +9,36 @@ parallel limiter. This module gives the whole project two guarantees:
 2. The mandatory ``SEC_USER_AGENT`` header is attached to every sec.gov request
    (and to no others). Missing UA = 403, so we refuse to send a sec.gov request
    when the UA is unset rather than fail mysteriously at the network.
+3. Transient failures are retried with exponential backoff — HTTP 429/5xx and
+   network/timeout errors. EDGAR and the Anthropic API both rate-limit with 429s
+   and have brief 5xx blips; one hiccup must not abort a nightly run. Every retry
+   re-acquires a rate slot, so retrying never breaches the global req/s cap, and a
+   ``Retry-After`` header is honored when the server sends one.
 """
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from collections import deque
+from collections.abc import Callable
 from urllib.parse import urlsplit
 
 import httpx
 
 from core.config import Settings, get_settings
 
+log = logging.getLogger("core.http_client")
+
 _SEC_DOMAIN = "sec.gov"
+
+# Statuses worth retrying: 429 (rate limited) and the transient 5xx family. A 4xx
+# other than 429 is a client error and is returned to the caller unchanged.
+_RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+# Backoff is capped so a long Retry-After or a high attempt count can't stall the
+# worker for minutes on a single request.
+_MAX_BACKOFF_SECONDS = 30.0
 
 
 class RateLimiter:
@@ -66,10 +82,15 @@ class HttpClient:
         settings: Settings | None = None,
         *,
         transport: httpx.BaseTransport | None = None,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._settings = settings or get_settings()
         self._limiter = RateLimiter(self._settings.http_max_requests_per_second)
         self._sec_user_agent = self._settings.sec_user_agent
+        self._max_retries = max(0, int(self._settings.http_max_retries))
+        self._backoff_base = float(self._settings.http_retry_backoff_seconds)
+        # `sleep` is injectable so retry tests don't spend real seconds backing off.
+        self._sleep = sleep
         # `transport` is an injection point for tests (httpx.MockTransport).
         self._client = httpx.Client(
             timeout=self._settings.http_timeout_seconds,
@@ -103,6 +124,27 @@ class HttpClient:
             merged.setdefault("User-Agent", self._sec_user_agent)
         return merged
 
+    @staticmethod
+    def _retry_after_seconds(value: str | None) -> float | None:
+        """Parse a ``Retry-After`` header value given as a number of seconds.
+
+        The HTTP-date form is not honored (rare from these APIs); we fall back to
+        exponential backoff for it. Returns None when absent/unparseable/negative.
+        """
+        if not value:
+            return None
+        try:
+            secs = float(value)
+        except ValueError:
+            return None
+        return secs if secs >= 0 else None
+
+    def _backoff_seconds(self, attempt: int, retry_after: float | None) -> float:
+        """Seconds to wait before the next attempt (0-indexed ``attempt``)."""
+        if retry_after is not None:
+            return min(retry_after, _MAX_BACKOFF_SECONDS)
+        return min(self._backoff_base * (2 ** attempt), _MAX_BACKOFF_SECONDS)
+
     def request(
         self,
         method: str,
@@ -112,8 +154,37 @@ class HttpClient:
         **kwargs,
     ) -> httpx.Response:
         final_headers = self.prepare_headers(url, headers)
-        self._limiter.acquire()  # global throttle happens here, after header validation
-        return self._client.request(method, url, headers=final_headers, **kwargs)
+        attempt = 0
+        while True:
+            # Throttle before EVERY attempt (including retries) so the global cap
+            # holds across retries, then issue the request.
+            self._limiter.acquire()
+            try:
+                response = self._client.request(method, url, headers=final_headers, **kwargs)
+            except httpx.TransportError as exc:
+                # Network/timeout error: retry with backoff, then give up.
+                if attempt >= self._max_retries:
+                    raise
+                delay = self._backoff_seconds(attempt, None)
+                log.warning(
+                    "transient HTTP error for %s (%s); retry %d/%d in %.2fs",
+                    url, exc, attempt + 1, self._max_retries, delay,
+                )
+                self._sleep(delay)
+                attempt += 1
+                continue
+            if response.status_code in _RETRYABLE_STATUS and attempt < self._max_retries:
+                retry_after = self._retry_after_seconds(response.headers.get("Retry-After"))
+                response.close()
+                delay = self._backoff_seconds(attempt, retry_after)
+                log.warning(
+                    "retryable status %d for %s; retry %d/%d in %.2fs",
+                    response.status_code, url, attempt + 1, self._max_retries, delay,
+                )
+                self._sleep(delay)
+                attempt += 1
+                continue
+            return response
 
     def get(self, url: str, **kwargs) -> httpx.Response:
         return self.request("GET", url, **kwargs)

@@ -12,6 +12,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Absolute path to the repo's .env (one level up from this file). Using an absolute
@@ -58,7 +59,18 @@ class Settings(BaseSettings):
     eight_k_skip_low_value: bool = False
 
     # --- Optional domain resolver (Phase 2) ----------------------------------
+    # The accurate name -> domain path. Both the key AND a provider endpoint must
+    # be set for the API backend to engage; otherwise seeding uses the heuristic.
     domain_resolver_api_key: str = ""
+    # Provider endpoint queried with ?name=<legal name>&country=<state>; the domain
+    # is read out of the JSON response. Provider-agnostic (see ApiDomainResolver).
+    domain_resolver_api_url: str = ""
+
+    # --- Demo mode (Phase 5 / dashboard) -------------------------------------
+    # When true, the read API serves seeded SAMPLE data (api/demo_data.py) with no
+    # database and no supabase package, so the /demo dashboard renders populated.
+    # Strictly opt-in; leave false in production.
+    signals_demo_data: bool = False
 
     # --- RapidAPI proxy secret (Phase 5) -------------------------------------
     rapidapi_proxy_secret: str = ""
@@ -72,6 +84,19 @@ class Settings(BaseSettings):
     # enforced GLOBALLY in the one shared client, so keep this <= 10.
     http_max_requests_per_second: float = 10.0
     http_timeout_seconds: float = 30.0
+    # Transient-failure retries (429/5xx + network errors). Each retry re-acquires
+    # the global rate slot, so retrying never breaches the req/s cap. 0 disables.
+    http_max_retries: int = 3
+    http_retry_backoff_seconds: float = 0.5
+
+    @field_validator("signals_demo_data", mode="before")
+    @classmethod
+    def _blank_bool_is_false(cls, v: object) -> object:
+        # An empty env value (e.g. `SIGNALS_DEMO_DATA=` in .env) means "off", not a
+        # parse error. Without this, a blank line crashes Settings() on boot.
+        if isinstance(v, str) and v.strip() == "":
+            return False
+        return v
 
 
 @lru_cache

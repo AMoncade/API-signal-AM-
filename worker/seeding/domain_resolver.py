@@ -1,20 +1,27 @@
 """Derive a website domain from a Form D issuer's legal name + state.
 
 Two backends behind one ``Resolver`` interface (phase2 prompt):
-  * ``ApiDomainResolver``       - uses DOMAIN_RESOLVER_API_KEY (a search/enrichment
-    service) when one is configured. Provider-agnostic: it expects a JSON body with
-    a best-guess domain. This is the accurate path once you wire a real provider.
+  * ``ApiDomainResolver``       - uses a search/enrichment service when both
+    DOMAIN_RESOLVER_API_KEY and DOMAIN_RESOLVER_API_URL are configured. It queries
+    the endpoint (``?name=<legal name>&country=<state>`` with a Bearer key) through
+    the shared HttpClient and reads the best-guess domain out of the JSON. This is
+    the higher-recall, more accurate path. Provider-agnostic: ``_extract`` accepts
+    the common response shapes. On any failure (non-200, network, no domain in the
+    body) it falls back to the heuristic so seeding is never blocked.
   * ``HeuristicDomainResolver`` - no key needed. Normalizes the name into candidate
     domains and keeps the first that actually RESOLVES in DNS. Lossy by design.
 
-``get_resolver()`` returns the API backend when a key is present, else the heuristic.
+``get_resolver()`` returns the API backend when a key AND endpoint are configured,
+else the heuristic.
 
 Name normalization and DNS probing are both pure/injected so the logic is unit
-testable without network: pass a ``dns_probe`` callable in tests.
+testable without network: pass a ``dns_probe`` callable in tests; the API backend
+is testable by injecting an HttpClient backed by an httpx.MockTransport.
 """
 
 from __future__ import annotations
 
+import logging
 import re
 import socket
 from collections.abc import Callable
@@ -23,6 +30,8 @@ from typing import Protocol
 from core.config import Settings, get_settings
 from core.http_client import HttpClient
 
+log = logging.getLogger("worker.seeding.domain_resolver")
+
 # Legal-suffix tokens stripped before turning a company name into a domain guess.
 _LEGAL_SUFFIXES = {
     "inc", "incorporated", "llc", "llp", "lp", "ltd", "limited", "corp",
@@ -30,6 +39,19 @@ _LEGAL_SUFFIXES = {
 }
 _NON_ALNUM = re.compile(r"[^a-z0-9]+")
 _TLDS = (".com", ".io", ".co", ".ai")
+# Pulls a bare registrable host out of whatever a provider returns: tolerates a
+# scheme, a leading www., and a trailing path/query (e.g. "https://www.acme.io/x").
+_DOMAIN_RE = re.compile(r"^(?:https?://)?(?:www\.)?([a-z0-9][a-z0-9.-]*\.[a-z]{2,})", re.IGNORECASE)
+
+
+def clean_domain(value: object) -> str | None:
+    """Normalize a provider-returned value to a bare lowercase host, or None."""
+    if not isinstance(value, str):
+        return None
+    m = _DOMAIN_RE.match(value.strip())
+    if not m:
+        return None
+    return m.group(1).lower().rstrip(".") or None
 
 
 class DomainResult:
@@ -115,26 +137,89 @@ class HeuristicDomainResolver:
 
 
 class ApiDomainResolver:
-    """Resolver backed by a search/enrichment API (DOMAIN_RESOLVER_API_KEY).
+    """Resolver backed by a search/enrichment API.
 
-    Provider-agnostic shell: it issues a query through the shared HttpClient and
-    reads a domain out of the JSON. Wire ``_endpoint``/``_extract`` to your chosen
-    provider; until then it degrades to the heuristic so seeding still runs.
+    Issues a GET to ``endpoint`` (``?name=<legal name>&country=<state>`` with the
+    key as a Bearer token) through the shared HttpClient and reads a domain out of
+    the JSON. Provider-agnostic: ``_extract`` walks the common response shapes
+    (top-level ``domain``/``website``/``url`` or nested under
+    ``data``/``result``/``company``/``organization``). On any failure (no endpoint,
+    non-200, network/JSON error, or no domain in the body) it falls back to the
+    heuristic so seeding is never blocked.
     """
 
-    def __init__(self, client: HttpClient, api_key: str, *, fallback: Resolver | None = None) -> None:
+    # Response keys that may carry the domain, and containers it may nest under.
+    _DOMAIN_KEYS = ("domain", "website", "url", "company_domain", "primary_domain")
+    _CONTAINERS = ("data", "result", "company", "organization")
+
+    def __init__(
+        self,
+        client: HttpClient,
+        api_key: str,
+        *,
+        endpoint: str = "",
+        fallback: Resolver | None = None,
+    ) -> None:
         self._client = client
         self._api_key = api_key
+        self._endpoint = endpoint
         self._fallback = fallback or HeuristicDomainResolver()
 
+    @classmethod
+    def _extract(cls, payload: object) -> str | None:
+        """Find the first usable domain in a provider-agnostic JSON payload."""
+        if isinstance(payload, dict):
+            for key in cls._DOMAIN_KEYS:
+                domain = clean_domain(payload.get(key))
+                if domain:
+                    return domain
+            for container in cls._CONTAINERS:
+                if container in payload:
+                    domain = cls._extract(payload[container])
+                    if domain:
+                        return domain
+        elif isinstance(payload, list):
+            for item in payload:
+                domain = cls._extract(item)
+                if domain:
+                    return domain
+        return None
+
     def resolve(self, entity_name: str, state_or_country: str | None) -> DomainResult:
-        # Provider wiring goes here (kept minimal: no real provider configured on
-        # this box). Fall back to the heuristic so the pipeline is never blocked.
+        if not self._endpoint:
+            # Nothing to query (key set but no endpoint): use the heuristic.
+            return self._fallback.resolve(entity_name, state_or_country)
+        params = {"name": entity_name}
+        if state_or_country:
+            params["country"] = state_or_country
+        headers = {"Authorization": f"Bearer {self._api_key}", "Accept": "application/json"}
+        try:
+            resp = self._client.get(self._endpoint, params=params, headers=headers)
+            if resp.status_code != 200:
+                log.warning(
+                    "domain resolver API returned %s for %r; falling back to heuristic",
+                    resp.status_code, entity_name,
+                )
+                return self._fallback.resolve(entity_name, state_or_country)
+            domain = self._extract(resp.json())
+        except Exception as exc:  # noqa: BLE001 - network/JSON error must never block seeding
+            log.warning(
+                "domain resolver API call failed for %r (%s); falling back to heuristic",
+                entity_name, exc,
+            )
+            return self._fallback.resolve(entity_name, state_or_country)
+        if domain:
+            return DomainResult(domain, "resolved")
+        # The API answered but offered no domain: try the heuristic for recall.
         return self._fallback.resolve(entity_name, state_or_country)
 
 
 def get_resolver(settings: Settings | None = None, client: HttpClient | None = None) -> Resolver:
     settings = settings or get_settings()
-    if settings.domain_resolver_api_key and client is not None:
-        return ApiDomainResolver(client, settings.domain_resolver_api_key)
+    if settings.domain_resolver_api_key and settings.domain_resolver_api_url and client is not None:
+        return ApiDomainResolver(
+            client,
+            settings.domain_resolver_api_key,
+            endpoint=settings.domain_resolver_api_url,
+        )
     return HeuristicDomainResolver()

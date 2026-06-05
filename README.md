@@ -105,6 +105,26 @@ curl http://localhost:8000/health
 # {"status":"ok","service":"signals-api","version":"0.1.0"}
 ```
 
+**Demo dashboard:** with the API running, open <http://localhost:8000/demo> - a
+single-file page (`demo/dashboard.html`) that renders all four signal endpoints
+as live tables with source links. Good for sales demos and eyeballing the data.
+It explains its own empty states (velocity/join need ~30 days of snapshots). In
+production the `/signals` routes stay behind the proxy-secret gate, so demo
+against an instance without `RAPIDAPI_PROXY_SECRET` set.
+
+**See it populated with zero setup (no database):** set `SIGNALS_DEMO_DATA=1` and
+the read API serves seeded sample rows instead of querying Supabase, so every
+panel on `/demo` fills in. No `supabase` package, credentials, or DB needed:
+
+```powershell
+$env:SIGNALS_DEMO_DATA = "1"
+.venv\Scripts\uvicorn.exe api.main:app --reload   # then open http://localhost:8000/demo
+```
+
+Leave `SIGNALS_DEMO_DATA` unset to read the real database. Without it (and without
+Supabase configured) the `/signals` calls return 500 and the page shows its
+"Could not load" hints, which is expected on a fresh box.
+
 > On Windows, `make` is usually not installed — use the `uv run ...` commands
 > directly (they are what the Makefile targets call).
 

@@ -22,8 +22,9 @@ from starlette.responses import JSONResponse
 log = logging.getLogger("api.auth")
 
 PROXY_SECRET_HEADER = "X-RapidAPI-Proxy-Secret"
-# Liveness/docs must stay reachable without the proxy secret.
-EXEMPT_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
+# Liveness/docs/demo page must stay reachable without the proxy secret. (/demo is
+# a static HTML shell; the /signals fetches it makes are still gated as usual.)
+EXEMPT_PATHS = {"/health", "/docs", "/redoc", "/openapi.json", "/demo"}
 
 
 class RapidApiProxyMiddleware(BaseHTTPMiddleware):
