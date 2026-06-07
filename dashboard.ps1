@@ -1,8 +1,9 @@
-# Launch the read API and open the interactive Swagger dashboard at /docs.
+# Launch the read API and open the visual demo dashboard at /demo.
 # Runs from anywhere (resolves its own folder + venv). Ctrl+C to stop the server.
 #
-#   .\dashboard.ps1            serve on http://127.0.0.1:8000/docs
+#   .\dashboard.ps1            serve + open http://127.0.0.1:8000/demo
 #   .\dashboard.ps1 8080       serve on a different port
+# The Swagger API explorer is also available at /docs.
 #
 # If PowerShell blocks the script, run:  powershell -ExecutionPolicy Bypass -File .\dashboard.ps1
 $ErrorActionPreference = "Stop"
@@ -15,8 +16,9 @@ if (-not (Test-Path $py)) {
 }
 Set-Location $root
 $port = if ($args.Count -ge 1) { $args[0] } else { 8000 }
-$url = "http://127.0.0.1:$port/docs"
-Write-Host "Dashboard: $url   (Ctrl+C to stop)" -ForegroundColor Cyan
-# open the browser shortly after the server comes up
-Start-Job -ScriptBlock { param($u) Start-Sleep 2; Start-Process $u } -ArgumentList $url | Out-Null
+$demo = "http://127.0.0.1:$port/demo"
+Write-Host "Visual dashboard: $demo" -ForegroundColor Cyan
+Write-Host "API explorer:     http://127.0.0.1:$port/docs   (Ctrl+C to stop)" -ForegroundColor Cyan
+# open the visual dashboard shortly after the server comes up
+Start-Job -ScriptBlock { param($u) Start-Sleep 2; Start-Process $u } -ArgumentList $demo | Out-Null
 & $py -m uvicorn api.main:app --reload --port $port
