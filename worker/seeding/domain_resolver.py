@@ -121,7 +121,15 @@ def _default_dns_probe(domain: str) -> bool:
 
 
 class HeuristicDomainResolver:
-    """No-key fallback: name -> candidate domains -> first that resolves in DNS."""
+    """No-key fallback: name -> candidate domains -> first that resolves in DNS.
+
+    Probes at most ``max_probes`` candidates per company. Each probe is a DNS
+    lookup; over a large backfill an unbounded fan-out can flood the OS resolver
+    (observed: getaddrinfo failures cascading to other hosts), so we cap it. The
+    most likely domains come first (see candidate_domains), so the cap costs little.
+    """
+
+    _MAX_PROBES = 4
 
     def __init__(self, dns_probe: Callable[[str], bool] = _default_dns_probe) -> None:
         self._dns_probe = dns_probe
@@ -130,7 +138,7 @@ class HeuristicDomainResolver:
         candidates = candidate_domains(entity_name)
         if not candidates:
             return DomainResult(None, "failed")
-        for domain in candidates:
+        for domain in candidates[: self._MAX_PROBES]:
             if self._dns_probe(domain):
                 return DomainResult(domain, "resolved")
         return DomainResult(None, "unresolved")

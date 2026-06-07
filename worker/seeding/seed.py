@@ -28,13 +28,14 @@ class SeedStats:
     domains_failed: int = 0
     ats_matched: int = 0
     ats_rejected: int = 0      # probe hit but failed name verification (likely false positive)
+    errors: int = 0            # per-company transient failures (network/DNS/DB), isolated
 
     def summary(self) -> str:
         dr = f"{self.domains_resolved}/{self.seen}" if self.seen else "0/0"
         ar = f"{self.ats_matched}/{self.seen}" if self.seen else "0/0"
         return (
             f"seen={self.seen} domains_resolved={dr} domains_failed={self.domains_failed} "
-            f"ats_matched={ar} ats_rejected={self.ats_rejected}"
+            f"ats_matched={ar} ats_rejected={self.ats_rejected} errors={self.errors}"
         )
 
 
@@ -85,12 +86,20 @@ def seed_companies(
         stats.seen = len(companies)
         log.info("seeding %d companies", stats.seen)
         for company in companies:
-            seed_one(store, prober, resolver, company, stats)
+            try:
+                seed_one(store, prober, resolver, company, stats)
+            except Exception as exc:  # noqa: BLE001 - one company's transient failure
+                # (DNS overload, network blip, DB write) must not abort the batch.
+                stats.errors += 1
+                log.warning("seeding failed for %s: %s", company.cik, exc)
         store.finish_run(
             run_id, status="success", items_processed=stats.ats_matched, notes=stats.summary()
         )
     except Exception as exc:  # noqa: BLE001
-        store.finish_run(run_id, status="error", items_processed=stats.ats_matched, notes=repr(exc))
+        try:
+            store.finish_run(run_id, status="error", items_processed=stats.ats_matched, notes=repr(exc))
+        except Exception:  # noqa: BLE001 - never let run-logging mask the real error
+            log.exception("could not log seeding run failure")
         raise
     log.info("seeding done: %s", stats.summary())
     return stats

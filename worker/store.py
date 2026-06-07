@@ -164,7 +164,10 @@ class SupabaseStore:
         q = (
             self.sb.table("companies")
             .select("cik,entity_name,state_or_country,entity_type,industry_group")
-            .is_("ats_token", "null")
+            # Only companies NOT yet attempted (domain_status defaults to 'pending';
+            # seeding sets it resolved/unresolved/failed). This makes repeated batches
+            # advance instead of re-probing the same unmatched companies forever.
+            .eq("domain_status", "pending")
             .order("first_seen_at", desc=False)
         )
         if limit is not None:
@@ -313,7 +316,8 @@ class InMemoryStore:
 
     # --- Phase 2 (seeding) ---------------------------------------------------
     def companies_needing_seeding(self, limit: int | None = None) -> list[CompanyRecord]:
-        out = [c for cik, c in self.companies.items() if cik not in self.ats]
+        # not-yet-attempted == no domain_status recorded yet (mirrors 'pending')
+        out = [c for cik, c in self.companies.items() if cik not in self.domains]
         return out[:limit] if limit is not None else out
 
     def set_domain(self, cik: str, domain: str | None, status: str) -> None:

@@ -109,7 +109,8 @@ def test_seed_rejects_false_positive_match() -> None:
 def test_seed_skips_companies_already_seeded() -> None:
     store = InMemoryStore()
     store.upsert_company(CompanyRecord("0000000001", "Stripe, Inc.", "CA"))
-    store.set_ats("0000000001", "greenhouse", "stripe")  # already matched
+    store.set_domain("0000000001", "stripe.com", "resolved")  # already attempted
+    store.set_ats("0000000001", "greenhouse", "stripe")       # already matched
     resolver = FakeResolver({"Stripe, Inc.": DomainResult("stripe.com", "resolved")})
     with _ats_client() as client:
         stats = seed_companies(client, store, resolver=resolver, prober=AtsProber(client))
