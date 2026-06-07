@@ -58,14 +58,6 @@ class Settings(BaseSettings):
     # contract changes) so the model is only called on genuinely material events.
     eight_k_skip_low_value: bool = False
 
-    # --- Optional domain resolver (Phase 2) ----------------------------------
-    # The accurate name -> domain path. Both the key AND a provider endpoint must
-    # be set for the API backend to engage; otherwise seeding uses the heuristic.
-    domain_resolver_api_key: str = ""
-    # Provider endpoint queried with ?name=<legal name>&country=<state>; the domain
-    # is read out of the JSON response. Provider-agnostic (see ApiDomainResolver).
-    domain_resolver_api_url: str = ""
-
     # --- Demo mode (Phase 5 / dashboard) -------------------------------------
     # When true, the read API serves seeded SAMPLE data (api/demo_data.py) with no
     # database and no supabase package, so the /demo dashboard renders populated.

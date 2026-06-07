@@ -30,7 +30,6 @@ class FundingSignal(_Row):
     cik: str
     entity_name: str | None = None
     state_or_country: str | None = None
-    derived_domain: str | None = None
     industry_group: str | None = None
     submission_type: str | None = None
     filed_at: datetime | None = None
@@ -47,7 +46,6 @@ class FundingSignal(_Row):
 class VelocitySignal(_Row):
     cik: str
     entity_name: str | None = None
-    derived_domain: str | None = None
     ats_provider: str | None = None
     latest_date: date | None = None
     current_open: int | None = None
@@ -75,7 +73,6 @@ class RiskSignal(_Row):
 class FundedAndHiringSignal(_Row):
     cik: str
     entity_name: str | None = None
-    derived_domain: str | None = None
     ats_provider: str | None = None
     latest_filing_date: datetime | None = None
     latest_amount_sold_usd: float | None = None

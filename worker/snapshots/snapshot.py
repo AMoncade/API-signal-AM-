@@ -35,11 +35,7 @@ class SnapshotStats:
 
 
 def _probe(prober: AtsProber, company: AtsCompany) -> AtsHit | None:
-    if company.ats_provider == "greenhouse":
-        return prober.probe_greenhouse(company.ats_token)
-    if company.ats_provider == "lever":
-        return prober.probe_lever(company.ats_token)
-    return None
+    return prober.probe(company.ats_provider, company.ats_token)
 
 
 def snapshot_one(prober: AtsProber, store: Store, company: AtsCompany, stats: SnapshotStats) -> None:

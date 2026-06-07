@@ -196,3 +196,13 @@ Always show tests actually running — never claim something works without showi
   supabase package installed. Strictly opt-in (default off); production reads the real DB. Added
   because a fresh box has no supabase package -> every /signals call 500s on the lazy
   `from supabase import ...`; demo mode never touches that import path.
+- Phase 2 widened + simplified: ATS matching now spans 7 PUBLIC no-auth providers
+  (greenhouse, lever, ashby, smartrecruiters, recruitee, workable, breezy) via a provider
+  registry in worker/seeding/ats.py (URL builder + parser each), verified live. Domain
+  derivation was DELETED (derived_domain/domain_status columns, domain_resolver.py, the DNS
+  heuristic) -- lossy and useless. Slugs come from the company NAME (board_tokens_from_name);
+  matches verified by the board's own company name (names_agree) when exposed, else token ==
+  full-name (lever/ashby). normalize_name_tokens now lives in ats.py. Apply
+  docs/migration_drop_domains_add_providers.sql to the live DB (drops columns, widens the
+  ats_provider CHECK, recreates funded_and_hiring). companies_needing_seeding is now simply
+  ats_token IS NULL (unmatched companies are re-checked on later runs).

@@ -44,17 +44,15 @@ create table if not exists companies (
   entity_type         text,                             -- Corporation / LLC / Limited Partnership ...
   industry_group      text,                             -- Form D offeringData.industryGroup.industryGroupType
 
-  -- Phase 2: domain derivation + ATS seeding (Form D has NO website field — derived)
-  derived_domain      text,
-  domain_status       text not null default 'pending'
-                        check (domain_status in ('pending','resolved','unresolved','failed')),
-  ats_provider        text check (ats_provider in ('greenhouse','lever')),
+  -- Phase 2: ATS board match. Slugs are derived from the NAME and probed across
+  -- several public job-board APIs; no website/domain is stored (derivation was lossy).
+  ats_provider        text check (ats_provider in
+                        ('greenhouse','lever','ashby','smartrecruiters','recruitee','workable','breezy')),
   ats_token           text,                             -- board token/slug; NULL until matched
 
   first_seen_at       timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
-create index if not exists idx_companies_domain      on companies (derived_domain);
 create index if not exists idx_companies_state        on companies (state_or_country);
 -- the "seeded and hiring-trackable" set:
 create index if not exists idx_companies_ats          on companies (ats_provider, ats_token)
@@ -213,7 +211,6 @@ create or replace view funded_and_hiring as
 select
   c.cik,
   c.entity_name,
-  c.derived_domain,
   c.ats_provider,
   f.latest_filing_date,
   f.latest_amount_sold_usd,

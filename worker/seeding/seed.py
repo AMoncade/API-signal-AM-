@@ -1,10 +1,10 @@
-"""Phase 2 orchestration: companies -> derived domain -> ATS board token.
+"""Phase 2 orchestration: company name -> candidate board slugs -> matched ATS board.
 
-For each company not yet hiring-trackable (no ats_token): derive a domain (HARD
-RULE #6), record derived_domain + domain_status, then probe Greenhouse/Lever with
-candidate tokens built from the domain and the normalized name. On a hit, store
-ats_provider + ats_token. Derivation failure is expected for a meaningful fraction
-of filers; we count outcomes so the hit rate is visible. Logs to ingestion_runs.
+There is NO website/domain step anymore (it was lossy and added nothing): slugs are
+derived straight from the company NAME and probed across every supported provider.
+Each hit is VERIFIED (by the board's own company name, or by requiring the token to
+equal the full company name) before storing ats_provider + ats_token. Most filers
+have no public board at all, which is expected. Logs to ingestion_runs.
 """
 
 from __future__ import annotations
@@ -12,10 +12,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from core.config import get_settings
 from core.http_client import HttpClient
-from worker.seeding.ats import AtsProber, accept_ats_match, board_tokens_from_domain
-from worker.seeding.domain_resolver import Resolver, get_resolver, normalize_name_tokens
+from worker.seeding.ats import AtsProber, accept_ats_match, board_tokens_from_name
 from worker.store import Store
 
 log = logging.getLogger("worker.seeding")
@@ -24,37 +22,23 @@ log = logging.getLogger("worker.seeding")
 @dataclass(slots=True)
 class SeedStats:
     seen: int = 0
-    domains_resolved: int = 0
-    domains_failed: int = 0
     ats_matched: int = 0
     ats_rejected: int = 0      # probe hit but failed name verification (likely false positive)
-    errors: int = 0            # per-company transient failures (network/DNS/DB), isolated
+    errors: int = 0            # per-company transient failures (network/DB), isolated
 
     def summary(self) -> str:
-        dr = f"{self.domains_resolved}/{self.seen}" if self.seen else "0/0"
         ar = f"{self.ats_matched}/{self.seen}" if self.seen else "0/0"
-        return (
-            f"seen={self.seen} domains_resolved={dr} domains_failed={self.domains_failed} "
-            f"ats_matched={ar} ats_rejected={self.ats_rejected} errors={self.errors}"
-        )
+        return f"seen={self.seen} ats_matched={ar} ats_rejected={self.ats_rejected} errors={self.errors}"
 
 
-def seed_one(store: Store, prober: AtsProber, resolver: Resolver, company, stats: SeedStats) -> None:
-    res = resolver.resolve(company.entity_name, company.state_or_country)
-    store.set_domain(company.cik, res.domain, res.status)
-    if res.status == "resolved":
-        stats.domains_resolved += 1
-    else:
-        stats.domains_failed += 1
-
-    name_tokens = normalize_name_tokens(company.entity_name)
-    tokens = board_tokens_from_domain(res.domain, name_tokens)
+def seed_one(store: Store, prober: AtsProber, company, stats: SeedStats) -> None:
+    tokens = board_tokens_from_name(company.entity_name)
     if not tokens:
         return
     hit = prober.probe_tokens(tokens)
     if not hit:
         return
-    if not accept_ats_match(company.entity_name, hit, res.domain):
+    if not accept_ats_match(company.entity_name, hit):
         stats.ats_rejected += 1
         log.info(
             "rejected likely false-positive ATS match: %s !~ %s/%s (board=%r)",
@@ -73,11 +57,9 @@ def seed_companies(
     client: HttpClient,
     store: Store,
     *,
-    resolver: Resolver | None = None,
     prober: AtsProber | None = None,
     limit: int | None = None,
 ) -> SeedStats:
-    resolver = resolver or get_resolver(get_settings(), client)
     prober = prober or AtsProber(client)
     stats = SeedStats()
     run_id = store.start_run("seeding")
@@ -87,9 +69,8 @@ def seed_companies(
         log.info("seeding %d companies", stats.seen)
         for company in companies:
             try:
-                seed_one(store, prober, resolver, company, stats)
-            except Exception as exc:  # noqa: BLE001 - one company's transient failure
-                # (DNS overload, network blip, DB write) must not abort the batch.
+                seed_one(store, prober, company, stats)
+            except Exception as exc:  # noqa: BLE001 - isolate one company's failure
                 stats.errors += 1
                 log.warning("seeding failed for %s: %s", company.cik, exc)
         store.finish_run(

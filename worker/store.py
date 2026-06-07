@@ -52,7 +52,6 @@ class Store(Protocol):
 
     # --- Phase 2 (seeding) ---------------------------------------------------
     def companies_needing_seeding(self, limit: int | None = None) -> list[CompanyRecord]: ...
-    def set_domain(self, cik: str, domain: str | None, status: str) -> None: ...
     def set_ats(self, cik: str, provider: str, token: str) -> None: ...
     # --- Phase 3 (snapshots + velocity) --------------------------------------
     def companies_with_ats(self, limit: int | None = None) -> list[AtsCompany]: ...
@@ -161,26 +160,17 @@ class SupabaseStore:
 
     # --- Phase 2 (seeding) ---------------------------------------------------
     def companies_needing_seeding(self, limit: int | None = None) -> list[CompanyRecord]:
+        # Companies without a matched board yet. Unmatched companies are re-checked
+        # on later runs (a company may add a public board over time), which is fine.
         q = (
             self.sb.table("companies")
             .select("cik,entity_name,state_or_country,entity_type,industry_group")
-            # Only companies NOT yet attempted (domain_status defaults to 'pending';
-            # seeding sets it resolved/unresolved/failed). This makes repeated batches
-            # advance instead of re-probing the same unmatched companies forever.
-            .eq("domain_status", "pending")
+            .is_("ats_token", "null")
             .order("first_seen_at", desc=False)
         )
         if limit is not None:
             q = q.limit(limit)
         return [self._to_company(r) for r in (q.execute().data or [])]
-
-    def set_domain(self, cik: str, domain: str | None, status: str) -> None:
-        (
-            self.sb.table("companies")
-            .update({"derived_domain": domain, "domain_status": status})
-            .eq("cik", cik)
-            .execute()
-        )
 
     def set_ats(self, cik: str, provider: str, token: str) -> None:
         (
@@ -279,7 +269,6 @@ class InMemoryStore:
         self.companies: dict[str, CompanyRecord] = {}
         self.filings: dict[str, FormDFilingRecord] = {}
         self.runs: list[dict] = []
-        self.domains: dict[str, tuple[str | None, str]] = {}     # cik -> (domain, status)
         self.ats: dict[str, tuple[str, str]] = {}                # cik -> (provider, token)
         self.snapshots: list[dict] = []                          # job_snapshots rows
         self.eight_k_events: dict[str, dict] = {}                # accession -> event row
@@ -316,12 +305,8 @@ class InMemoryStore:
 
     # --- Phase 2 (seeding) ---------------------------------------------------
     def companies_needing_seeding(self, limit: int | None = None) -> list[CompanyRecord]:
-        # not-yet-attempted == no domain_status recorded yet (mirrors 'pending')
-        out = [c for cik, c in self.companies.items() if cik not in self.domains]
+        out = [c for cik, c in self.companies.items() if cik not in self.ats]
         return out[:limit] if limit is not None else out
-
-    def set_domain(self, cik: str, domain: str | None, status: str) -> None:
-        self.domains[cik] = (domain, status)
 
     def set_ats(self, cik: str, provider: str, token: str) -> None:
         self.ats[cik] = (provider, token)
@@ -412,13 +397,11 @@ class InMemoryStore:
                 continue
             recent.sort(key=lambda f: (f.filed_at, f.accession_number), reverse=True)
             latest = recent[0]
-            domain, _status = self.domains.get(cik, (None, None))
             provider, _token = self.ats.get(cik, (None, None))
             out.append(
                 {
                     "cik": cik,
                     "entity_name": self.companies[cik].entity_name,
-                    "derived_domain": domain,
                     "ats_provider": provider,
                     "latest_filing_date": latest.filed_at,
                     "latest_amount_sold_usd": (

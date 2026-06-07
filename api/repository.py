@@ -81,7 +81,7 @@ class SupabaseRepository:
             return {}
         res = (
             self.sb.table("companies")
-            .select("cik,entity_name,state_or_country,derived_domain,ats_provider,ats_token")
+            .select("cik,entity_name,state_or_country,ats_provider,ats_token")
             .in_("cik", ciks)
             .execute()
         )
@@ -90,10 +90,10 @@ class SupabaseRepository:
     def pre_announced_funding(
         self, *, offset: int, limit: int, sector: str | None = None, filed_after: str | None = None
     ) -> Page:
-        # Embed the FK'd company (entity_name, domain) in one query.
+        # Embed the FK'd company (entity_name) in one query.
         q = (
             self.sb.table("form_d_filings")
-            .select("*, companies(entity_name, state_or_country, derived_domain)")
+            .select("*, companies(entity_name, state_or_country)")
             .eq("is_pooled_fund", False)
             # Secondary key: daily-index rows share a midnight filed_at, so a unique
             # tie-breaker is required or offset pagination can skip/duplicate rows.
@@ -111,7 +111,6 @@ class SupabaseRepository:
             company = company[0] if isinstance(company, list) else (company or {})
             r["entity_name"] = company.get("entity_name")
             r["state_or_country"] = company.get("state_or_country")
-            r["derived_domain"] = company.get("derived_domain")
             r["source_url"] = filing_index_url(r["cik"], r["accession_number"])
         return self._take(rows, limit)
 
@@ -130,7 +129,6 @@ class SupabaseRepository:
         for r in rows:
             c = companies.get(r["cik"], {})
             r["entity_name"] = c.get("entity_name")
-            r["derived_domain"] = c.get("derived_domain")
             r["ats_provider"] = c.get("ats_provider")
             r["source_url"] = board_url(c.get("ats_provider"), c.get("ats_token"))
         return self._take(rows, limit)

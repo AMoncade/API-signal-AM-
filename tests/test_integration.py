@@ -68,7 +68,6 @@ def _seed_full_pipeline() -> InMemoryStore:
         ingest_one(client, store, ref, RunStats())
 
     # Phase 2: ATS board matched.
-    store.set_domain(CT_CIK, "clustertruck.com", "resolved")
     store.set_ats(CT_CIK, "greenhouse", "clustertruck")
 
     # Phase 3: a ~35-day-old baseline (10) + a current 3x snapshot (30) => surging.
@@ -89,7 +88,6 @@ def test_funded_and_hiring_join_returns_seeded_company() -> None:
     row = rows[0]
     assert row["cik"] == CT_CIK
     assert row["entity_name"] == "ClusterTruck, Inc."
-    assert row["derived_domain"] == "clustertruck.com"
     assert row["ats_provider"] == "greenhouse"
     assert row["current_open"] == 30
     assert row["baseline_open"] == 10
