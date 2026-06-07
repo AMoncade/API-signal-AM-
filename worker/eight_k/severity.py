@@ -37,7 +37,8 @@ def apply_severity_override(
     if event_type in _FIXED:
         return _FIXED[event_type]
     if event_type == "exec_departure":
-        role = (affected_role or "").lower()
+        # defensive: affected_role should be a string by now, but never assume
+        role = str(affected_role or "").lower()
         if is_abrupt or any(key in role for key in _C_SUITE):
             return "high"
         return "medium"

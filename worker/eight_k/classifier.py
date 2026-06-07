@@ -104,10 +104,34 @@ def validate_classification(raw: str) -> dict:
             data["confidence"] = min(1.0, max(0.0, float(conf)))
         except (TypeError, ValueError):
             data["confidence"] = None
-    summary = data.get("summary")
+    # Local models often return the wrong JSON TYPE for these (list/number/etc).
+    # Coerce to what the schema + DB columns expect so a loose response can't crash.
+    data["affectedRole"] = _coerce_text(data.get("affectedRole"))
+    summary = _coerce_text(data.get("summary"))
     if isinstance(summary, str) and len(summary) > 240:
-        data["summary"] = summary[:240]
+        summary = summary[:240]
+    data["summary"] = summary
+    data["isAbrupt"] = _coerce_bool(data.get("isAbrupt"))
     return data
+
+
+def _coerce_text(value) -> str | None:
+    """Normalize a model field to a clean string (or None). Joins lists, stringifies
+    other non-str types — guards against e.g. affectedRole=['CEO','CFO']."""
+    if value is None or isinstance(value, str):
+        return value or None
+    if isinstance(value, (list, tuple)):
+        parts = [str(v).strip() for v in value if v not in (None, "")]
+        return ", ".join(parts) or None
+    return str(value)
+
+
+def _coerce_bool(value) -> bool | None:
+    if value is None or isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "yes", "1")
+    return bool(value)
 
 
 class AnthropicClassifier:

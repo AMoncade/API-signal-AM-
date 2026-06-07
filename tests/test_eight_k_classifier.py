@@ -83,6 +83,20 @@ def test_validate_truncates_long_summary() -> None:
     assert len(data["summary"]) == 240
 
 
+def test_validate_coerces_loose_local_model_types() -> None:
+    # Local models sometimes return the wrong JSON type; coerce so it can't crash
+    # the severity step (this was a real Ollama failure: affectedRole as a list).
+    d = validate_classification(
+        '{"affectedRole":["CEO","CFO"],"isAbrupt":"true","summary":["A.","B."]}'
+    )
+    assert d["affectedRole"] == "CEO, CFO"      # list -> joined string
+    assert d["isAbrupt"] is True                # "true" -> bool
+    assert d["summary"] == "A., B."             # list -> joined string
+    # and the severity rubric handles the coerced (or even raw) value safely
+    assert apply_severity_override("exec_departure", is_abrupt=True, affected_role=d["affectedRole"]) == "high"
+    assert apply_severity_override("exec_departure", affected_role=["CEO"]) == "high"  # defensive
+
+
 # --- provider selection + local (Ollama) classifier --------------------------
 
 def _client() -> HttpClient:

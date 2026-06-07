@@ -120,37 +120,38 @@ def classify_one(
     event_type, _default_sev = event
 
     text = extract_primary_text(full_txt)
-    from worker.eight_k.classifier import ClassificationError
 
+    # Isolate the ENTIRE per-filing classify+build+store path: a loose model
+    # response (bad JSON, wrong field types) or a transient write must count as a
+    # classify_error and skip this filing, never abort the whole nightly batch.
     try:
         result = classifier.classify(text=text, item_codes=codes, entity_name=ref.company_name)
-    except ClassificationError as exc:
-        # One unusable model response must not abort the whole batch.
+        llm = result.data
+        severity = apply_severity_override(
+            event_type, is_abrupt=llm.get("isAbrupt"), affected_role=llm.get("affectedRole")
+        )
+        record = EightKEventRecord(
+            accession_number=ref.accession_number,
+            cik=ref.cik10,
+            entity_name=ref.company_name,
+            filed_at=ref.filed_at,
+            item_codes=codes,
+            event_type=event_type,          # from Item codes, NOT the model
+            severity=severity,              # deterministic override
+            is_abrupt=llm.get("isAbrupt"),
+            affected_role=llm.get("affectedRole"),
+            summary=llm.get("summary"),
+            confidence=llm.get("confidence"),
+            source_url=filing_index_url(ref),
+        )
+        store.insert_eight_k_event(record.to_row())
+    except Exception as exc:  # noqa: BLE001 - per-filing isolation
         stats.classify_errors += 1
         log.warning("classification failed for %s: %s", ref.accession_number, exc)
         return None
+
     stats.input_tokens += result.input_tokens
     stats.output_tokens += result.output_tokens
-    llm = result.data
-
-    severity = apply_severity_override(
-        event_type, is_abrupt=llm.get("isAbrupt"), affected_role=llm.get("affectedRole")
-    )
-    record = EightKEventRecord(
-        accession_number=ref.accession_number,
-        cik=ref.cik10,
-        entity_name=ref.company_name,
-        filed_at=ref.filed_at,
-        item_codes=codes,
-        event_type=event_type,          # from Item codes, NOT the model
-        severity=severity,              # deterministic override
-        is_abrupt=llm.get("isAbrupt"),
-        affected_role=llm.get("affectedRole"),
-        summary=llm.get("summary"),
-        confidence=llm.get("confidence"),
-        source_url=filing_index_url(ref),
-    )
-    store.insert_eight_k_event(record.to_row())
     stats.classified += 1
     return record
 
