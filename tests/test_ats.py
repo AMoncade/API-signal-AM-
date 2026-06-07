@@ -89,10 +89,10 @@ def test_accept_ats_match_gate() -> None:
     assert accept_ats_match("Stripe, Inc.", gh_ok) is True
     gh_bad = AtsHit("greenhouse", "apex", 1, None, company_name="Apex Fintech")
     assert accept_ats_match("Apex Tech Growth Partners, LLC", gh_bad) is False
-    # lever: token must be a strong derivation of the name
-    lever_ok = AtsHit("lever", "robinhood", 5, None)
-    assert accept_ats_match("Robinhood Markets, Inc.", lever_ok, "robinhood.com") is True
-    lever_bad = AtsHit("lever", "apex", 1, None)
+    # lever: token must equal the FULL name concatenation
+    lever_ok = AtsHit("lever", "dexterity", 5, None)
+    assert accept_ats_match("Dexterity, Inc.", lever_ok, "dexterity.com") is True
+    lever_bad = AtsHit("lever", "apex", 1, None)   # 'apex' != 'apextechgrowthpartners'
     assert accept_ats_match("Apex Tech Growth Partners, LLC", lever_bad) is False
 
 

@@ -153,25 +153,19 @@ def names_agree(form_d_name: str, board_name: str) -> bool:
     ba = _significant_tokens(board_name)
     if not fa or not ba:
         return False
-    if "".join(fa) == "".join(ba):
-        return True
-    if len(ba) == 1 and ba[0] == fa[0] and len(ba[0]) >= 5:
-        return True
-    return False
+    # Require the FULL distinctive stems to match. A shared leading word is NOT
+    # enough: "Huntress Wealth Co." must NOT match the board "Huntress". (Generic
+    # words like "markets"/"technologies" are already stripped, so "Mercury
+    # Technologies" still reduces to {mercury} and matches the "Mercury" board.)
+    return "".join(fa) == "".join(ba)
 
 
 def token_is_name_justified(token: str, name: str, domain: str | None = None) -> bool:
-    """Lever has no company-name endpoint, so verify the TOKEN itself is a strong
-    derivation of the issuer name: the full concatenation, the domain SLD, or the
-    leading distinctive word (>=5 chars)."""
-    toks = normalize_name_tokens(name)
-    concat = "".join(toks)
-    if token == concat and len(token) >= 4:
-        return True
-    if domain and token == domain.split(".")[0] and len(token) >= 5:
-        return True
-    sig = _significant_tokens(name)
-    return bool(sig) and token == sig[0] and len(token) >= 5
+    """Lever has no company-name endpoint, so the only safe signal is that the TOKEN
+    equals the issuer's FULL name concatenation. A bare leading word, a distinctive
+    stem, or a heuristic domain SLD is NOT accepted -- a fund like "Apex Tech Growth
+    Partners" reduces to the stem "apex" and would otherwise match an unrelated board."""
+    return token == "".join(normalize_name_tokens(name)) and len(token) >= 4
 
 
 def accept_ats_match(form_d_name: str, hit: AtsHit, domain: str | None = None) -> bool:
