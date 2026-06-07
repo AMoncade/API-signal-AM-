@@ -143,8 +143,10 @@ _PROVIDERS: dict[str, tuple[Callable[[str], str], Callable]] = {
     "ashby": (lambda t: f"https://api.ashbyhq.com/posting-api/job-board/{t}", _parse_ashby),
     "smartrecruiters": (lambda t: f"https://api.smartrecruiters.com/v1/companies/{t}/postings?limit=100", _parse_smartrecruiters),
     "recruitee": (lambda t: f"https://{t}.recruitee.com/api/offers/", _parse_recruitee),
-    "workable": (lambda t: f"https://apply.workable.com/api/v1/widget/accounts/{t}", _parse_workable),
     "breezy": (lambda t: f"https://{t}.breezy.hr/json", _parse_breezy),
+    # Workable's public widget rate-limits aggressively (429 + Retry-After); probe it
+    # LAST so an earlier hit short-circuits, and rely on retries=0 to keep 429s instant.
+    "workable": (lambda t: f"https://apply.workable.com/api/v1/widget/accounts/{t}", _parse_workable),
 }
 
 
@@ -155,8 +157,11 @@ class AtsProber:
         self._client = client
 
     def _get_json(self, url: str):
+        # retries=0: a board probe is best-effort. A 429/5xx/network error means
+        # "miss, move on" -- never back off (that turns a rate-limited provider like
+        # Workable into a multi-second-per-company stall across thousands of companies).
         try:
-            resp = self._client.get(url)
+            resp = self._client.get(url, retries=0)
         except Exception:  # noqa: BLE001 - network hiccup => treat as miss
             return None
         if resp.status_code != 200:
@@ -199,8 +204,9 @@ class AtsProber:
 
 def board_tokens_from_name(entity_name: str) -> list[str]:
     """Candidate board slugs (>=4 chars) derived from the company NAME only:
-    the concatenated significant words, the bare first word when distinctive
-    (>=5 chars), and the first two words joined. Every hit is still verified."""
+    the concatenated significant words and the bare first word when distinctive
+    (>=5 chars). Kept to 2 tokens to bound requests-per-company; every hit is
+    still verified."""
     toks = normalize_name_tokens(entity_name)
     out: list[str] = []
     seen: set[str] = set()
@@ -213,8 +219,6 @@ def board_tokens_from_name(entity_name: str) -> list[str]:
     if toks:
         add("".join(toks))
         add(toks[0], min_len=5)
-        if len(toks) >= 2:
-            add("".join(toks[:2]))
     return out
 
 

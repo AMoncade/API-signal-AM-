@@ -206,3 +206,11 @@ Always show tests actually running — never claim something works without showi
   docs/migration_drop_domains_add_providers.sql to the live DB (drops columns, widens the
   ats_provider CHECK, recreates funded_and_hiring). companies_needing_seeding is now simply
   ats_token IS NULL (unmatched companies are re-checked on later runs).
+- Probe speed fix: ATS board probes pass retries=0 to the shared client (new per-call
+  override on HttpClient.request) so a 429/5xx/network error is an INSTANT miss. Workable's
+  public widget rate-limits hard (429 + Retry-After: 30); with the normal retry path that was
+  ~90s PER COMPANY and stalled whole scans. board_tokens_from_name capped to 2 tokens; Workable
+  probed last so an earlier hit short-circuits. Measured: a Workable miss 90s -> 0.14s. The
+  retry path remains ON (with backoff) for EDGAR/Anthropic ingestion. Bulk re-seed still
+  re-probes all unmatched companies each run (~1.5s/token); a last_checked_at column would let
+  runs skip recently-checked companies (future, needs a migration).

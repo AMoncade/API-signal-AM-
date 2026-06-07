@@ -151,8 +151,14 @@ class HttpClient:
         url: str,
         *,
         headers: dict[str, str] | None = None,
+        retries: int | None = None,
         **kwargs,
     ) -> httpx.Response:
+        # `retries` overrides the configured max for THIS call. Best-effort probes
+        # (ATS board existence) pass retries=0 so a 429/5xx/error is an instant miss
+        # instead of triggering backoff -- a rate-limited provider (e.g. Workable)
+        # can send Retry-After: 30 and stall an entire scan otherwise.
+        max_retries = self._max_retries if retries is None else max(0, int(retries))
         final_headers = self.prepare_headers(url, headers)
         attempt = 0
         while True:
@@ -163,23 +169,23 @@ class HttpClient:
                 response = self._client.request(method, url, headers=final_headers, **kwargs)
             except httpx.TransportError as exc:
                 # Network/timeout error: retry with backoff, then give up.
-                if attempt >= self._max_retries:
+                if attempt >= max_retries:
                     raise
                 delay = self._backoff_seconds(attempt, None)
                 log.warning(
                     "transient HTTP error for %s (%s); retry %d/%d in %.2fs",
-                    url, exc, attempt + 1, self._max_retries, delay,
+                    url, exc, attempt + 1, max_retries, delay,
                 )
                 self._sleep(delay)
                 attempt += 1
                 continue
-            if response.status_code in _RETRYABLE_STATUS and attempt < self._max_retries:
+            if response.status_code in _RETRYABLE_STATUS and attempt < max_retries:
                 retry_after = self._retry_after_seconds(response.headers.get("Retry-After"))
                 response.close()
                 delay = self._backoff_seconds(attempt, retry_after)
                 log.warning(
                     "retryable status %d for %s; retry %d/%d in %.2fs",
-                    response.status_code, url, attempt + 1, self._max_retries, delay,
+                    response.status_code, url, attempt + 1, max_retries, delay,
                 )
                 self._sleep(delay)
                 attempt += 1

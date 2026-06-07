@@ -201,6 +201,21 @@ def test_retries_disabled_when_max_retries_zero() -> None:
     assert calls[0] == 1                 # no retries attempted
 
 
+def test_per_call_retries_override_disables_retry() -> None:
+    # Even with retries configured ON, a single call can opt out (retries=0) -- this
+    # is what ATS board probes use so a rate-limited 429 is an instant miss, not a
+    # multi-second backoff. The 429 is returned immediately with no extra attempts.
+    client, calls, delays = _retry_client(
+        [httpx.Response(429, headers={"Retry-After": "30"}), httpx.Response(200)],
+        http_max_retries=3,
+    )
+    resp = client.get("https://apply.workable.com/api/v1/widget/accounts/acme", retries=0)
+    client.close()
+    assert resp.status_code == 429       # not retried into the 200
+    assert calls[0] == 1                 # exactly one request
+    assert delays == []                  # never backed off
+
+
 def test_post_is_retried_and_resubmits_body() -> None:
     # The headline retry use case is a POST: the Anthropic classifier and the Ollama
     # extractor both POST a json body. Retrying must resubmit the SAME body.
